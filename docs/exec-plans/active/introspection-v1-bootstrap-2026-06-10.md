@@ -194,6 +194,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** none. **Size:** M
 
 ### WI-02: Define schemas, config, and canonical record layout
+**Status:** Complete on 2026-06-11. Committed as `270fdee` (`feat: define record schema contracts`). Verification passed: `corepack pnpm install --frozen-lockfile`, targeted schema contract tests, `corepack pnpm prose`, and `corepack pnpm check`. Review and refactor gates reported no remaining blockers or should-fix issues.
 **Phase-entry note:** When adding first-class schema/source-of-truth docs, update the WI-01 prose gate per TD-016 so new authored docs are covered while imported provenance remains explicitly excluded.
 **Goal:** Lock the file formats and validation contracts.
 **Done when:** JSON Schemas exist for base record frontmatter, tech-debt frontmatter (incl. required body headings), config TOML, vocabulary TOML, and export manifest; the `.introspection/` + records-root layout documented; flat-vs-nested frontmatter split documented.
