@@ -80,6 +80,19 @@ describe('WI-06 lifecycle evidence validation', () => {
     }
   });
 
+  it('rejects active records that already carry terminal resolution metadata', () => {
+    const record = techDebtRecord({
+      resolution: {
+        ...resolution('done'),
+        evidence_refs: [{ kind: 'doc', ref: 'docs/decisions/accepted-remediation.md' }],
+      },
+    });
+
+    assert.deepStrictEqual(findingCodes(validateRecordLifecycle(techDebtRecordType, record)), [
+      'lifecycle.resolution.active_forbidden',
+    ]);
+  });
+
   it('accepts terminal tech-debt states only when the required rationale and evidence are present', () => {
     const record = techDebtRecord({
       status: 'done',

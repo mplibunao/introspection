@@ -117,7 +117,7 @@ describe('WI-03 static record type registry', () => {
   });
 });
 
-describe('WI-03 tech-debt placeholder contract', () => {
+describe('WI-03 tech-debt record type contract', () => {
   it('models lifecycle, derived tags, prime summary, and export projection', () => {
     const record = techDebtRecord();
 
@@ -140,19 +140,17 @@ describe('WI-03 tech-debt placeholder contract', () => {
     assert.deepStrictEqual(techDebtRecordType.projectForExport(record, {}).id, 'BP-TD-007');
   });
 
-  it('keeps terminal evidence requirements visible before the full lifecycle engine lands', () => {
+  it('leaves terminal lifecycle evidence to core validation', () => {
     const record = techDebtRecord({
       status: 'done',
       resolution: {
         disposition: 'done',
         resolved_at: timestamp,
-        rationale: 'The terminal evidence check should require refs.',
+        rationale: 'The core lifecycle check should require refs.',
       },
     });
 
-    assert.deepStrictEqual(findingCodes(techDebtRecordType.validate(record, {})), [
-      'lifecycle.resolution.evidence_refs.required',
-    ]);
+    assert.deepStrictEqual(techDebtRecordType.validate(record, {}), []);
   });
 });
 

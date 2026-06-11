@@ -171,41 +171,27 @@ describe('WI-02 tech-debt schema boundaries', () => {
     assertInvalid(validate, techDebtFixture({ scope: {} }));
   });
 
-  it('expresses tech-debt terminal evidence requirements', () => {
+  it('validates lifecycle evidence shape without owning status-specific evidence policy', () => {
     const validate = validatorFor('techDebt');
 
-    assertInvalid(
-      validate,
-      techDebtFixture({
-        status: 'done',
-        resolution: terminalResolution('done', false),
-      }),
-    );
+    assertValid(validate, techDebtFixture({ status: 'done' }));
     assertValid(
-      validate,
-      techDebtFixture({
-        status: 'done',
-        resolution: terminalResolution('done', true),
-      }),
-    );
-    assertValid(
-      validate,
-      techDebtFixture({
-        status: 'rejected',
-        resolution: terminalResolution('rejected', false),
-      }),
-    );
-    assertInvalid(
-      validate,
-      techDebtFixture({
-        resolution: terminalResolution('done', true),
-      }),
-    );
-    assertInvalid(
       validate,
       techDebtFixture({
         status: 'done',
         resolution: terminalResolution('rejected', true),
+      }),
+    );
+    assertInvalid(
+      validate,
+      techDebtFixture({
+        status: 'done',
+        resolution: {
+          disposition: 'done',
+          resolved_at: timestamp,
+          rationale: 'The evidence ref is malformed.',
+          evidence_refs: [{ kind: 'doc' }],
+        },
       }),
     );
   });

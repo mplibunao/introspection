@@ -99,6 +99,7 @@ interface LifecycleEvidenceRequirement {
 interface LifecycleStatusDefinition {
   readonly kind: LifecycleStatusKind;
   readonly evidence?: LifecycleEvidenceRequirement;
+  readonly allowsActiveResolution?: boolean;
 }
 
 interface LifecycleTransitionDefinition {
@@ -210,6 +211,15 @@ const resolutionRequiredFinding = (status: string): Finding => ({
   remediation: 'Add resolved_at and rationale before moving this record to a terminal status.',
 });
 
+const activeResolutionForbiddenFinding = (status: string): Finding => ({
+  code: 'lifecycle.resolution.active_forbidden',
+  severity: 'error',
+  message: `Active status "${status}" cannot carry a resolution block.`,
+  path: ['resolution'],
+  remediation:
+    'Remove resolution metadata while the record is active, or move the record to a terminal lifecycle status.',
+});
+
 const dispositionMismatchFinding = (resolution: Resolution, status: string): Finding => ({
   code: 'lifecycle.resolution.disposition_mismatch',
   severity: 'error',
@@ -257,11 +267,20 @@ const transitionTargetStatusFinding = (actualStatus: string, toStatus: string): 
 const resolutionFindings = <Frontmatter extends BaseRecordFrontmatter>(
   evidence: LifecycleEvidenceRequirement,
   record: ParsedRecord<Frontmatter>,
+  options: { readonly forbidResolutionWithoutRequirement?: boolean } = {},
 ): ReadonlyArray<Finding> => {
   const { resolution, status } = record.frontmatter;
 
   if (evidence.requiresResolution === true && !resolution) {
     return [resolutionRequiredFinding(status)];
+  }
+
+  if (
+    options.forbidResolutionWithoutRequirement === true &&
+    evidence.requiresResolution !== true &&
+    resolution
+  ) {
+    return [activeResolutionForbiddenFinding(status)];
   }
 
   if (resolution && resolution.disposition !== status) {
@@ -302,8 +321,9 @@ const conversionTargetFindings = <Frontmatter extends BaseRecordFrontmatter>(
 const collectEvidenceFindings = <Frontmatter extends BaseRecordFrontmatter>(
   evidence: LifecycleEvidenceRequirement,
   record: ParsedRecord<Frontmatter>,
+  options: { readonly forbidResolutionWithoutRequirement?: boolean } = {},
 ): ReadonlyArray<Finding> => [
-  ...resolutionFindings(evidence, record),
+  ...resolutionFindings(evidence, record, options),
   ...resolutionEvidenceFindings(evidence, record),
   ...conversionTargetFindings(evidence, record),
 ];
@@ -319,7 +339,10 @@ const validateLifecycleEvidence = <Frontmatter extends BaseRecordFrontmatter>(
     return [unknownStatusFinding(recordType, status)];
   }
 
-  return collectEvidenceFindings(statusDefinition.evidence ?? {}, record);
+  return collectEvidenceFindings(statusDefinition.evidence ?? {}, record, {
+    forbidResolutionWithoutRequirement:
+      statusDefinition.kind === 'active' && statusDefinition.allowsActiveResolution !== true,
+  });
 };
 
 const findTransition = (

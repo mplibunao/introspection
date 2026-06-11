@@ -63,7 +63,7 @@ This split keeps retrieval metadata compact while preserving enough structured e
 
 `schemas/base-record.schema.json` owns the universal frontmatter fields and reusable nested evidence shapes. Record-type schemas extend that base schema and close their own accepted key set.
 
-`schemas/tech-debt-record.schema.json` owns the first public record type. It declares the tech-debt lifecycle states, the terminal evidence shape, and the required Markdown body headings:
+`schemas/tech-debt-record.schema.json` owns the first public record type's frontmatter shape. It declares the tech-debt lifecycle states, reusable evidence object shape, and required Markdown body-heading metadata. Core lifecycle validation owns status-specific evidence requirements, such as which terminal states require `resolution.evidence_refs`.
 
 - `## Problem`
 - `## Why deferred`

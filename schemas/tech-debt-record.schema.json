@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://introspection.local/schemas/tech-debt-record.schema.json",
   "title": "introspection tech-debt record frontmatter",
-  "description": "Frontmatter contract for the first public introspection record type. Required markdown body headings are declared through x-required_headings and enforced by the record checker once WI-06/WI-07 lands.",
+  "description": "Frontmatter contract for the first public introspection record type. Required markdown body headings are declared through x-required_headings and enforced by the tech-debt record type validator.",
   "required": ["source"],
   "properties": {
     "schema_version": {
@@ -70,135 +70,6 @@
   "allOf": [
     {
       "$ref": "https://introspection.local/schemas/base-record.schema.json"
-    },
-    {
-      "if": {
-        "properties": {
-          "status": {
-            "const": "open"
-          }
-        },
-        "required": ["status"]
-      },
-      "then": {
-        "not": {
-          "required": ["resolution"]
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "status": {
-            "enum": ["done", "rejected", "superseded", "moved"]
-          }
-        },
-        "required": ["status"]
-      },
-      "then": {
-        "required": ["resolution"]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "status": {
-            "const": "done"
-          }
-        },
-        "required": ["status"]
-      },
-      "then": {
-        "properties": {
-          "resolution": {
-            "properties": {
-              "disposition": {
-                "const": "done"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "status": {
-            "const": "rejected"
-          }
-        },
-        "required": ["status"]
-      },
-      "then": {
-        "properties": {
-          "resolution": {
-            "properties": {
-              "disposition": {
-                "const": "rejected"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "status": {
-            "const": "superseded"
-          }
-        },
-        "required": ["status"]
-      },
-      "then": {
-        "properties": {
-          "resolution": {
-            "properties": {
-              "disposition": {
-                "const": "superseded"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "status": {
-            "const": "moved"
-          }
-        },
-        "required": ["status"]
-      },
-      "then": {
-        "properties": {
-          "resolution": {
-            "properties": {
-              "disposition": {
-                "const": "moved"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "status": {
-            "enum": ["done", "superseded", "moved"]
-          }
-        },
-        "required": ["status"]
-      },
-      "then": {
-        "properties": {
-          "resolution": {
-            "required": ["evidence_refs"]
-          }
-        }
-      }
     }
   ],
   "unevaluatedProperties": false,
