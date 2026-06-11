@@ -1,5 +1,6 @@
 import type { CheckFinding, CheckReport } from '../core/validation.js';
-import type { VocabularyTerm } from '../config/repo-context.js';
+import type { RepoContext, VocabularyTerm } from '../config/repo-context.js';
+import type { PrimeFilters, PrimeSelection } from '../core/prime-selector.js';
 import type {
   DeleteVocabularyTermResult,
   VocabularyCascadeResult,
@@ -66,6 +67,73 @@ const repairHuman = (result: DuplicateRepairResult): string =>
     `Body prose occurrences reported: ${result.bodyOccurrences.length}.`,
   ].join(newline)}${newline}`;
 
+const filterValues = (label: string, values: ReadonlyArray<string>): string | null => {
+  if (values.length === 0) {
+    return null;
+  }
+
+  return `${label}=${values.join(',')}`;
+};
+
+const flagLabel = (enabled: boolean, label: string): string | null => {
+  if (enabled) {
+    return label;
+  }
+
+  return null;
+};
+
+const primeFilterSummary = (filters: Required<PrimeFilters>): string => {
+  const parts = [
+    filterValues('type', filters.types),
+    filterValues('status', filters.statuses),
+    filterValues('tag', filters.tags),
+    filterValues('path', filters.paths),
+    flagLabel(filters.includeTerminal, 'include-terminal'),
+    flagLabel(filters.all, 'all'),
+  ].filter((part): part is string => part !== null);
+
+  if (parts.length === 0) {
+    return 'active records';
+  }
+
+  return parts.join('; ');
+};
+
+const primeLimitSuffix = (selection: PrimeSelection): string => {
+  if (!selection.limit.clamped) {
+    return `limit ${selection.limit.effectiveLimit}`;
+  }
+
+  return `limit ${selection.limit.effectiveLimit} (clamped from ${selection.limit.requestedLimit})`;
+};
+
+const primeRecordLine = (record: PrimeSelection['records'][number]): string =>
+  `- ${record.id} [${record.recordType}/${record.status}] ${record.title} (${record.path}; updated ${record.updatedAt}; age ${record.ageDays}d)`;
+
+const unreadableRecordWarning = (selection: PrimeSelection): ReadonlyArray<string> => {
+  if (selection.failedReadCount === 0) {
+    return [];
+  }
+
+  return [
+    `Skipped unreadable records: ${selection.failedReadCount}. Run introspection check for details.`,
+  ];
+};
+
+const primeHuman = (repo: RepoContext, selection: PrimeSelection): string => {
+  const header = [
+    `Prime for ${repo.repoKey}/${repo.repoSlug}: showing ${selection.shownRecordCount} of ${selection.totalMatchingRecordCount} matching record(s); omitted ${selection.omittedRecordCount}; ${primeLimitSuffix(selection)}.`,
+    `Scope: ${primeFilterSummary(selection.filters)}.`,
+  ];
+  const records = selection.records.flatMap((record) => [
+    primeRecordLine(record),
+    `  ${record.summary}`,
+  ]);
+
+  return `${[...header, ...unreadableRecordWarning(selection), ...records].join(newline)}${newline}`;
+};
+
 const vocabularyTermLine = (term: VocabularyTerm): string =>
   `- ${term.tag} [${term.status}] ${term.description}`;
 
@@ -102,6 +170,7 @@ const vocabularyDeleteHuman = (result: DeleteVocabularyTermResult): string =>
 export {
   checkHuman,
   errorHuman,
+  primeHuman,
   recordHuman,
   repairHuman,
   transitionHuman,

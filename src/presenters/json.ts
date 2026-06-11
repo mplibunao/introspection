@@ -1,4 +1,9 @@
-import type { IntrospectionVocabulary, VocabularyTerm } from '../config/repo-context.js';
+import type {
+  IntrospectionVocabulary,
+  RepoContext,
+  VocabularyTerm,
+} from '../config/repo-context.js';
+import type { PrimeSelection } from '../core/prime-selector.js';
 import type {
   DeleteVocabularyTermResult,
   VocabularyCascadeResult,
@@ -52,6 +57,20 @@ const repairJson = (result: DuplicateRepairResult): string =>
     },
   });
 
+const primeJson = (repo: RepoContext, selection: PrimeSelection): string =>
+  renderJson({
+    ok: true,
+    prime: {
+      repo: {
+        key: repo.repoKey,
+        slug: repo.repoSlug,
+        root: repo.repoRoot,
+        recordsRoot: repo.recordsRoot,
+      },
+      ...selection,
+    },
+  });
+
 const vocabularyJson = (vocabulary: IntrospectionVocabulary): string =>
   renderJson({ ok: true, vocabulary });
 
@@ -78,6 +97,7 @@ const vocabularyDeleteJson = (result: DeleteVocabularyTermResult): string =>
 export {
   checkJson,
   errorJson,
+  primeJson,
   recordJson,
   repairJson,
   transitionJson,

@@ -5,6 +5,7 @@ import { errorJson } from '../presenters/json.js';
 import { checkCommand } from './check.js';
 import { cliArgumentError, failure, normalizeError } from './helpers.js';
 import { idsCommand } from './ids.js';
+import { primeCommand } from './prime.js';
 import { recordCommand } from './record.js';
 import type {
   CliCommandContext,
@@ -17,6 +18,7 @@ import { vocabCommand } from './vocab.js';
 
 const commandHandlers = new Map<string, CommandHandler>([
   ['check', checkCommand],
+  ['prime', primeCommand],
   ['record', recordCommand],
   ['ids', idsCommand],
   ['vocab', vocabCommand],
@@ -26,6 +28,7 @@ const helpText = `introspection ${version}
 
 Commands:
   check                         Validate records.
+  prime                         Show bounded active record context.
   record create tech-debt       Create a tech-debt record.
   record transition             Move a record through its lifecycle.
   ids repair                    Repair one duplicate record ID.
