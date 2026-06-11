@@ -1,0 +1,16 @@
+{
+  "extends": "@mplibunao/tsconfig/base.json",
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["ES2022"],
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "tsdown.config.ts"
+  ]
+}

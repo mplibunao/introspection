@@ -1,0 +1,45 @@
+packages:
+  - '.'
+allowBuilds:
+  msgpackr-extract: true
+blockExoticSubdeps: true
+catalog:
+  '@changesets/cli': 2.31.0
+  '@effect/vitest': 4.0.0-beta.73
+  '@mplibunao/oxlint-standards': 0.1.0
+  '@mplibunao/tsconfig': 0.1.0
+  '@types/node': 24.12.4
+  effect: 4.0.0-beta.73
+  oxfmt: 0.43.0
+  oxlint: 1.58.0
+  tsdown: 0.20.3
+  typescript: 6.0.2
+  vite-plus: 0.1.15
+  vitest: 4.1.2
+  yaml: 2.9.0
+catalogMode: strict
+cleanupUnusedCatalogs: true
+dangerouslyAllowAllBuilds: false
+minimumReleaseAge: 10080
+minimumReleaseAgeIgnoreMissingTime: false
+minimumReleaseAgeStrict: true
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild
+  - msgpackr-extract
+  - oxc-resolver
+  - rolldown
+  - unrs-resolver
+overrides:
+  oxlint-tsgolint: 0.18.1
+  semver: '>=7.7.2'
+packageManagerStrictVersion: true
+strictDepBuilds: true
+trustPolicy: no-downgrade
+# Effect 4 beta packages published with provenance after earlier trusted-publisher
+# releases, so pnpm treats the exact beta pins as a trust downgrade. Keep this
+# exception version-scoped and revisit it when moving off 4.0.0-beta.73.
+trustPolicyExclude:
+  - effect@4.0.0-beta.73
+  - '@effect/vitest@4.0.0-beta.73'
+verifyDepsBeforeRun: warn

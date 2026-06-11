@@ -1,0 +1,14 @@
+AGENTS
+backpressure
+Corepack
+Effect
+frontmatter
+GNO
+Introspection
+MP
+pnpm
+RepoPrompt
+tsdown
+vite-plus
+Vitest
+WI

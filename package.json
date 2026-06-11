@@ -1,0 +1,53 @@
+{
+  "name": "@mplibunao/introspection",
+  "version": "0.0.0",
+  "description": "Governed markdown record substrate and CLI for agent-maintained repositories.",
+  "license": "MIT",
+  "bin": {
+    "introspection": "./dist/bin.mjs"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "changeset": "changeset",
+    "check": "vp check && pnpm typecheck && pnpm test && pnpm build && pnpm prose",
+    "check:fix": "vp check --fix",
+    "fmt": "vp fmt",
+    "format": "pnpm fmt",
+    "lint": "vp lint --max-warnings 0",
+    "pack:dry-run": "pnpm build && pnpm pack --dry-run",
+    "prose": "scripts/prose-files.sh",
+    "prose:sync": "scripts/setup-vale.sh",
+    "test": "vitest run",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@changesets/cli": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@mplibunao/oxlint-standards": "catalog:",
+    "@mplibunao/tsconfig": "catalog:",
+    "@types/node": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:",
+    "yaml": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "packageManager": "pnpm@11.4.0"
+}

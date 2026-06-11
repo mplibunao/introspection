@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.pnpm-store/
+.stryker-tmp/
+.npm-cache/
+.claude/settings.local.json
+.tsbuildinfo
+*.tsbuildinfo
+.DS_Store
+*.log
+COMMIT_EDITMSG
+.introspection/.locks/
+.introspection/generated/
+styles/Google/
+styles/alex/
+styles/write-good/
