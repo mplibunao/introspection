@@ -213,6 +213,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-02. **Size:** M. *Contract gate*
 
 ### WI-04: Build markdown record store, parser, and atomic writer
+**Status:** Complete on 2026-06-11. Committed as `d6a451e` (`feat: add markdown record store`). Verification passed: targeted store tests and `corepack pnpm check`. Review and refactor gates reported no remaining blockers or should-fix issues.
 **Goal:** Safe filesystem mechanics for markdown source records.
 **Done when:** store lists/reads/creates/updates/moves/archives records; create-only writes use the Decision #3 no-clobber primitive on the final target (check-absence-then-rename is insufficient across processes); updates use temp-file + rename and abort on stale hash per the Decision #3 semantics (raw bytes hashed at read, re-verified immediately before rename); a non-throwing read path exists for `check` (malformed frontmatter or unreadable files become per-file findings instead of aborting the corpus scan); a single-process create-collision test proves the no-clobber semantics here, with the two-process simulation living at WI-05; the store consumes a resolved records-root path rather than performing repo discovery (that is WI-21's job), so WI-04 stays independent of WI-21; tests cover malformed frontmatter and missing required fields.
 **Key files:** `src/store/markdown-record-store.ts`, `src/store/frontmatter.ts`, `src/core/errors.ts`, `test/store/markdown-record-store.test.ts`.
