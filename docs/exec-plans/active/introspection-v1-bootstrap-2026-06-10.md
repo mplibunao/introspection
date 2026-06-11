@@ -63,7 +63,7 @@ Bootstrap the `introspection` repo: a governed, typed, agent-maintained record s
 
 ## Approach
 
-V1 builds the durable substrate only. That substrate includes a static `RecordType` registry, a markdown record store with atomic writes, ID allocation safe under same-worktree concurrency, lifecycle validation with terminal-evidence enforcement, record-local controlled vocabulary, deterministic `prime`, and JSON/GNO export projections. V1 then adopts that substrate in backpressure behind an explicit dogfood checkpoint. Everything in TD-001..TD-014 stays deferred.
+V1 builds the durable substrate only. That substrate includes a static `RecordType` registry, a markdown record store with atomic writes, ID allocation safe under same-worktree concurrency, lifecycle validation with terminal-evidence enforcement, record-local controlled vocabulary, deterministic `prime`, and JSON/GNO export projections. V1 then adopts that substrate in backpressure behind an explicit dogfood checkpoint. Everything in TD-001..TD-014 stays deferred until its written trigger fires; the only trigger that fires inside this plan is TD-007's (the dogfood gate), which WI-18 executes. Additional record types (mistakes/desires/learnings) are post-v1 work behind TD-003, even though the seed's original ordering lists them after the gate.
 
 ### Resolved decisions (mapping the 12 open questions)
 
@@ -71,14 +71,14 @@ V1 builds the durable substrate only. That substrate includes a static `RecordTy
 |---:|---|
 | 1 | `RecordType` is a static compiled contract declaring schema, lifecycle, transition evidence, validation, prime summary, and export projection. Base frontmatter carries `schema_version`, canonical ID fields, status, dates, visibility, and tags. Conversion evidence is typed `conversion_targets` plus a terminal `resolution` block. |
 | 2 | Tech-debt lifecycle: `open → done/rejected/superseded/moved`; all terminal states require dated rationale; `done`/`superseded`/`moved` also require evidence/refs. The non-user-facing conversion fixture lifecycle: `observed → converted/rejected/superseded`, `converted` requiring `conversion_targets`. |
-| 3 | IDs render as `BP-TD-007` from committed `repo_key` + type key + number. Allocation happens under a crash-recoverable local lock in `.introspection/.locks/` (lock metadata carries PID + timestamp; locks with a dead PID or past a TTL are reclaimable). Inside that lock, the allocator scans existing records, computes `max+1`, and exclusive-creates the new record so two processes in one worktree cannot double-allocate. Updates: hash the raw file bytes at read time, re-verify immediately before the atomic temp-file + rename, abort with a remediation finding on mismatch. The exact lock primitive (O_EXCL lockfile vs lock dir) is implementer's choice; the semantics above are the contract. Cross-branch duplicates are out of scope for the lock. They fail `check`, and an explicit `ids repair` command renumbers and rewrites refs within the records root (never arbitrary repo markdown). |
+| 3 | IDs render as `BP-TD-007` from committed `repo_key` + type key + number, with the number zero-padded to three digits (wider numbers render unpadded, matching the schema's `[0-9]{3,}` shape). Allocation happens under a crash-recoverable local lock in `.introspection/.locks/` (lock metadata carries PID + timestamp; locks with a dead PID or past a TTL are reclaimable). Inside that lock, the allocator scans existing records, computes `max+1`, and exclusive-creates the new record so two processes in one worktree cannot double-allocate. Updates: hash the raw file bytes at read time, re-verify immediately before the atomic temp-file + rename, abort with a remediation finding on mismatch. The exact lock primitive (O_EXCL lockfile vs lock dir) is implementer's choice; the semantics above are the contract, with one addition: the final-target create must be a true no-clobber primitive (open with `wx` or equivalent on the destination). Check-absence-then-rename is not acceptable, because `rename` silently replaces a file another process created in the gap; the concurrency test must use two separate processes, not two promises. Cross-branch duplicates are out of scope for the lock. They fail `check`, and an explicit `ids repair` operation renumbers the record and updates structured refs within the records root: the record's own `id`/`number`/filename plus frontmatter refs whose value is the old ID or path. Body-prose occurrences of the old ID are reported, not rewritten, and nothing outside the records root is ever touched. |
 | 4 | V1 exposes data via CLI commands + generated exports only. No server/TUI/web UI. Generated artifacts are disposable and recreatable. |
 | 5 | `prime` is deterministic, zero-GNO. Repo root = nearest ancestor of cwd containing `.introspection/config.toml` (independent of git). Fixed invariants: active records only by default, bounded output (config-defaulted limit with a hard cap), explicit omitted counts, deterministic stable total order. The exact default limit and tie-break sequence are tool-tuning details (documented defaults, overridable by flag/config), not contract. Flags: type/status/tag/path/limit/include-terminal/all/json. |
-| 6 | GNO-relevant fields stay flat/top-level (`id`, `title`, `record_type`, `type`, `category`, `status`, `visibility`, `created_at`, `updated_at`, `tags`, conforming to GNO's tag grammar); introspection-only data (`resolution`, `source`, `scope`, `conversion_targets`) may nest. Because records live in a visible directory (see layout), GNO indexes the source files directly; the GNO export projection exists for publish/portable artifacts, not as the indexing path. |
+| 6 | GNO-relevant fields stay flat/top-level (`id`, `title`, `record_type`, `type`, `category`, `status`, `visibility`, `created_at`, `updated_at`, `tags`, conforming to GNO's tag grammar); introspection-only data (`resolution`, `source`, `scope`, `conversion_targets`) may nest. Because records live in a visible directory (see layout), GNO indexes the source files directly for local retrieval; the GNO export projection (WI-11) is a disposable artifact for portable use, not the indexing path. No core path (`check`, transitions, default `prime`) consumes any retrieval adapter in v1; the retrieval port ships with contract tests and a proving impl per the seed's ports rule, and GNO-assisted features stay behind TD-005/TD-008. |
 | 7 | Judgment lives in adopter prose. `.introspection/config.toml` holds mechanics (`repo_key`, `repo_slug`, the source of the `repo/<slug>` derived tag; records root, default `docs/records/`; default visibility) + policy-doc pointers. `.introspection/vocabulary.toml` owns record-local vocabulary terms (approved/provisional, descriptions, provenance). |
 | 8 | V1 vocabulary ops are record-local only: propose, approve, reject, list, usage, rename, merge, delete-if-unused. Rename/merge cascades only across the configured records root (`docs/records/**` by default). Unknown raw tags fail validation with remediation; CLI-created unknown tags enter as provisional via an explicit propose flow. |
 | 9 | Backpressure **dogfoods via a local link** (`file:`/`pnpm link` to the locally built package). npm publish is NOT on the dogfood critical path. After the gate passes, publish and switch backpressure to the published catalog pin (WI-19), handling the 7-day cooldown there: scoped `minimumReleaseAgeExclude` if backpressure's pnpm supports it, else let the release age past the window. No global installs inside `pnpm check`. Old tracker becomes a pointer stub; `introspection check` wires into `pnpm check` before prose. |
-| 10 | **(User calls at the mid-flow checkpoint, plus the canon pass)** Effect 4 beta's built-in `effect/unstable/cli`, matching t3code: bet on the future API now rather than migrating off `@effect/cli` after Effect 4 GAs. Pin the exact beta (t3code pins `4.0.0-beta.73` with a local patch; adopt the same pin-and-patch discipline) and accept churn until GA. The rest of the stack follows the taste-distillery canon plus the user calls marked inline; see the Bootstrap stack section below. Borrow t3code's patterns directly: in-process `Command.runWith` testing, `--json` + quiet-logs, named flag consts, per-command layers (consider one shared `AppLayer`). |
+| 10 | **(User calls at the mid-flow checkpoint, plus the canon pass)** Effect 4 beta's built-in `effect/unstable/cli`, matching t3code: bet on the future API now rather than migrating off `@effect/cli` after Effect 4 GAs. Pin the exact beta (t3code pins `4.0.0-beta.73` with a local patch; adopt the same pin-and-patch discipline) and accept churn until GA. The shipped bin is bun-first (user call, 2026-06-11): the tsdown banner is `#!/usr/bin/env bun` and engines pin bun alongside node. Effect platform wiring: the bin entrypoint uses `@effect/platform-bun` (BunServices/BunRuntime); domain code depends only on abstract platform services and node-compat APIs that bun implements natively; vitest tests provide node-flavored layers of the same abstract services. The published package is CLI-only in v1: tsdown bundles all runtime deps into the bin, and no public library exports are supported. The rest of the stack follows the taste-distillery canon plus the user calls marked inline; see the Bootstrap stack section below. Borrow t3code's patterns directly: in-process `Command.runWith` testing, `--json` + quiet-logs, named flag consts, per-command layers (consider one shared `AppLayer`). |
 | 11 | Superseded design-input docs stay archived with a final "mined into introspection v1 plan" disposition note, not deleted. |
 | 12 | After the dogfood gate passes, introspection's own TD-001..TD-014 migrate into its own records; the old tracker file becomes a pointer stub (self-dogfood). |
 
@@ -133,17 +133,19 @@ WI-02 (schemas), WI-07 (record type), and WI-12 (importer) all consume this one 
 ### `RecordType` contract (static registry, no runtime loading)
 
 ```ts
-RecordType {
-  key: "tech-debt"
-  idPrefix: "TD"
-  schema: FrontmatterSchema
+interface RecordType<Frontmatter> {
+  key: Frontmatter['record_type']
+  idPrefix: string
+  schema: JsonSchemaDocument
   lifecycle: LifecycleDefinition
-  derivedTags(record): Tag[]
-  validate(record, context): Finding[]
-  summarizeForPrime(record): PrimeSummary
-  projectForExport(record): ExportDocument
+  derivedTags(record, context): ReadonlyArray<string>
+  validate(record, context): ReadonlyArray<Finding>
+  summarizeForPrime(record, context): PrimeSummary
+  projectForExport(record, context): ExportDocument
 }
 ```
+
+This mirrors the committed interface (`src/core/record-type.ts:138-147`): all four methods take a `ValidationContext` carrying `repoKey`/`repoSlug`/`recordsRoot` as optional fields. The invariant that closes the gap between optional fields and mandatory derived tags: when a context field a derived tag needs is missing (such as `repoSlug` for `repo/<slug>`), validation emits a finding; the tag is never silently omitted.
 
 Registered in `src/record-types/registry.ts`; the conversion fixture registers only in tests and exists solely to force the contract to model conversion semantics before the interface is treated as stable.
 
@@ -158,17 +160,17 @@ Registered in `src/record-types/registry.ts`; the conversion fixture registers o
 Card IDs reference the taste-distillery canon (see Background: Stack canon).
 
 - **Runtime + package manager:** pnpm 11 with Corepack-pinned `packageManager`, `engines.node >=24` (TD-CARD-005, TD-BASELINE-002); `mise.toml` pins repo-local tools (TD-CARD-002).
-- **Supply chain hardening (user call: on par with backpressure and claude-toolkit):** introspection's own `pnpm-workspace.yaml` adopts the full block from backpressure's live config: `catalogMode: strict`, `cleanupUnusedCatalogs: true`, `blockExoticSubdeps: true`, `minimumReleaseAge: 10080`, `minimumReleaseAgeStrict: true`, `minimumReleaseAgeIgnoreMissingTime: false`, `strictDepBuilds: true`, `dangerouslyAllowAllBuilds: false` with explicit `onlyBuiltDependencies`, `trustPolicy: no-downgrade`, `verifyDepsBeforeRun: warn`, `packageManagerStrictVersion: true`. Consequence to accept: the pinned Effect 4 beta must be at least 7 days old at install time, so pick pins that have already aged past the window (that is the protection working as intended).
+- **Supply chain hardening (user call: on par with backpressure and claude-toolkit):** introspection adopts the MP hardening posture; its own `pnpm-workspace.yaml` plus `docs/references/supply-chain.md` are the live authority, and the baseline set is: `catalogMode: strict`, `cleanupUnusedCatalogs: true`, `blockExoticSubdeps: true`, `minimumReleaseAge: 10080`, `minimumReleaseAgeStrict: true`, `minimumReleaseAgeIgnoreMissingTime: false`, `strictDepBuilds: true`, `dangerouslyAllowAllBuilds: false` with explicit `onlyBuiltDependencies`, `trustPolicy: no-downgrade`, `verifyDepsBeforeRun: warn`, `packageManagerStrictVersion: true`. Consequence to accept: the pinned Effect 4 beta must be at least 7 days old at install time, so pick pins that have already aged past the window (that is the protection working as intended). The scaffold's `trustPolicyExclude` exact-version pins for the Effect beta packages are the sanctioned escape hatch on introspection's own side; they are distinct from the `minimumReleaseAgeExclude` decision backpressure faces at WI-19.
 - **TypeScript:** strict via consuming `@mplibunao/tsconfig` (TD-CARD-006; the canon prescribes the published presets), extended locally where the CLI needs it.
 - **Lint/format:** oxlint via `@mplibunao/oxlint-standards` (TD-CARD-008; the canon prescribes the published rule set) with the hard-ceiling thresholds as errors; oxfmt as the formatter, shipped inside vite-plus (TD-CARD-036, t3code precedent).
 - **Check front door:** `check: vite-plus check` in package.json (TD-CARD-007), mirroring backpressure's `pnpm check` chain shape.
-- **Tests + build:** Vitest + `@effect/vitest` (TD-CARD-010); authored repo scripts run on Bun (TD-CARD-035); build via tsdown with a shebang banner (t3code precedent). tsdown is its own dependency, not part of vite-plus 0.1.x, and is chosen because a published CLI ships one bundled bin with inlined deps; backpressure's config packages need only `tsc -b`, so it has no bundler.
+- **Tests + build:** Vitest + `@effect/vitest` (TD-CARD-010); authored repo scripts run on Bun (TD-CARD-035); build via tsdown with a shebang banner (t3code precedent). tsdown is its own dependency, not part of vite-plus 0.1.x, and is chosen because a published CLI ships one bundled bin with inlined deps; backpressure's config packages need only `tsc -b`, so it has no bundler. Runtime (user call, 2026-06-11, superseding the earlier Node-floor framing): the shipped bin is bun-first. The tsdown banner becomes `#!/usr/bin/env bun`, engines pin bun next to node (backpressure posture), CI provides bun through the mise pin, and adoption docs name bun as a requirement; every current adopter already carries it (backpressure pins bun in engines, GNO requires bun). Vitest + `@effect/vitest` stays the runner on purpose: it is Effect's only first-class test integration, and WI-20's Stryker pairing has no bun-test runner. Platform wiring (settled 2026-06-11): the bin entrypoint uses `@effect/platform-bun`. Domain code depends only on abstract platform services and node-compat APIs, which bun implements natively, so vitest tests provide node-flavored layers of the same services. The platform package is an entrypoint concern, not a code dialect, and the ports architecture keeps it swappable.
 - **Prose gate:** repo-local Vale per TD-CARD-013: `.vale.ini` with `StylesPath = styles` and an `introspection` style dir, hash-gated `scripts/setup-vale.sh` sync, gate runs `vale --no-global --minAlertLevel=error` over tracked markdown, excluding the `AGENTS.md` symlink and `prompt-exports/**`.
 - **Code discipline + structural rules:** the Effect discipline cards govern the CLI's own source (TD-CARD-001 effect-first boundaries, TD-CARD-023 service boundaries and observability, TD-CARD-024 code discipline); test seams stay few and strong (TD-CARD-003); the injectable clock seam is that card in practice; ast-grep structural rules (TD-CARD-009, TD-BASELINE-005) land alongside the invariants they guard, not as empty scaffolding.
 - **CI:** one reproducible gate (TD-CARD-017, TD-BASELINE-001): CI installs mise frozen, caches Vale styles, and runs the same check the repo runs locally; every docs dir carries an `index.md` (TD-CARD-014 convention).
 - **Repo + branch protection:** the GitHub repo is public. On creation, apply the tool-owned `claude-toolkit branch-protection baseline` ruleset via the `github-ops` skill (`repo.protection.apply`, then `repo.protection.verify`): PR-before-merge with zero required approvals, the repo's named CI check contexts required, force-pushes and deletion blocked, repo-admin always-bypass (TD-CARD-037; recipe in `claude-toolkit/.claude/skills/github-ops/references/branch-protection-baseline.md`). This is the safety boundary the WI-19 auto-publish flow leans on (TD-CARD-034 moved release safety onto branch protection plus CI).
 - **Mutation testing (user call: as in backpressure v1):** Stryker with the Vitest runner runs over the record kernel near the end of the build (WI-20) so the tests get stronger before the dogfood gate; reports land under `docs/reports/mutation/` (backpressure precedent; canon baseline `typescript-testing-and-mutation`, TD-BASELINE-006).
-- **Release plumbing from day one:** `.changeset/` scaffold + `CHANGELOG.md` (TD-CARD-015). Publishing itself waits for WI-19 and follows TD-CARD-034 (Trusted Publishing OIDC + provenance, no token secrets, fail-closed pre-publish gate) with artifact validation per TD-CARD-018 (pack, install the tarball, import smoke).
+- **Release plumbing from day one:** `.changeset/` scaffold + `CHANGELOG.md` (TD-CARD-015). Publishing itself waits for WI-19 and follows TD-CARD-034 (Trusted Publishing OIDC + provenance, no token secrets, fail-closed pre-publish gate) with artifact validation per TD-CARD-018 (pack, install the tarball, import smoke). Distribution shape (user call, 2026-06-11): per-platform compiled binaries through npm, the same pattern oxlint/Biome/esbuild use. `bun build --compile` consumes the tsdown bundle per target (initial set: darwin-arm64, linux-x64, linux-arm64); each platform package sets `os`/`cpu` and rides as an `optionalDependency` of the main package, whose thin launcher resolves the matching binary and falls back to running the JS bundle on host bun when none matches. No postinstall downloads: those collide with the `strictDepBuilds` posture adopting repos run. A compiled binary also pins the bun runtime inside the artifact, so adopter-side runtime drift disappears.
 
 ### Verification gate map
 
@@ -176,7 +178,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 |---|---|---|
 | Backpressure migration | WI-12, WI-14, WI-15 | Import report covers TD-001..TD-011 with explicit dispositions; old tracker is pointer-only; backpressure `pnpm check` passes. |
 | Lifecycle evidence | WI-03, WI-06, WI-07, WI-09, WI-15 | Tests reject terminal states lacking rationale/evidence (via the `record transition` command path); migrated archive records validate. |
-| Concurrency | WI-05, WI-15 | Two-simulated-agent allocation test produces no duplicate IDs; duplicate fixture fails `check`; repair test passes. |
+| Concurrency | WI-05, WI-15 | Two separate OS processes cannot allocate the same ID (two promises in one process do not count); duplicate fixture fails `check`; repair test passes. |
 | Prime bounded | WI-10, WI-15 | Default limit + omitted counts proven; terminal records excluded by default. |
 | Export recreatable | WI-11, WI-15 | Delete generated export → rerun → identical logical content. |
 | Boundary no-GNO | WI-11, WI-15 | Check, transitions, and deterministic prime pass with GNO absent. |
@@ -212,21 +214,21 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 
 ### WI-04: Build markdown record store, parser, and atomic writer
 **Goal:** Safe filesystem mechanics for markdown source records.
-**Done when:** store lists/reads/creates/updates/moves/archives records; writes use temp-file + rename; updates abort on stale hash per the Decision #3 semantics (raw bytes hashed at read, re-verified immediately before rename); tests cover malformed frontmatter and missing required fields.
+**Done when:** store lists/reads/creates/updates/moves/archives records; create-only writes use the Decision #3 no-clobber primitive on the final target (check-absence-then-rename is insufficient across processes); updates use temp-file + rename and abort on stale hash per the Decision #3 semantics (raw bytes hashed at read, re-verified immediately before rename); a non-throwing read path exists for `check` (malformed frontmatter or unreadable files become per-file findings instead of aborting the corpus scan); a single-process create-collision test proves the no-clobber semantics here, with the two-process simulation living at WI-05; the store consumes a resolved records-root path rather than performing repo discovery (that is WI-21's job), so WI-04 stays independent of WI-21; tests cover malformed frontmatter and missing required fields.
 **Key files:** `src/store/markdown-record-store.ts`, `src/store/frontmatter.ts`, `src/core/errors.ts`, `test/store/markdown-record-store.test.ts`.
 **Dependencies:** WI-03. **Size:** M
 
 ### WI-05: Build ID allocator and duplicate repair workflow
 **Goal:** Make `(repo, key, number)` safe under same-worktree concurrency and repairable after branch merges.
-**Done when:** allocator follows the Decision #3 lock contract (crash-recoverable lock; scan+allocate+create inside it); duplicate IDs fail validation; repair command renumbers one duplicate and updates record-local refs; concurrent-allocation simulation (two parallel processes) proves no duplicates in one worktree; stale-lock reclaim is tested.
-**Key files:** `src/core/id.ts`, `src/store/id-allocator.ts`, `src/commands/ids.ts`, `test/store/id-allocator.test.ts`, `test/commands/ids-repair.test.ts`.
-**Dependencies:** WI-04. **Size:** M. *Concurrency gate*
+**Done when:** allocator follows the Decision #3 lock contract (crash-recoverable lock; scan+allocate+create inside it, with the no-clobber final-target create); duplicate IDs fail validation; the repair service renumbers one duplicate and updates structured refs per Decision #3 (CLI wiring lands at WI-09); concurrent-allocation simulation with two separate processes proves no duplicates in one worktree; stale-lock reclaim is tested.
+**Key files:** `src/core/id.ts`, `src/store/id-allocator.ts`, `test/store/id-allocator.test.ts`, repair-service tests.
+**Dependencies:** WI-04, WI-21. **Size:** M. *Concurrency gate*
 
 ### WI-06: Build lifecycle and validation engine
 **Goal:** Enforce schema, lifecycle, terminal evidence, links, visibility, and tag invariants.
-**Done when:** `introspection check` validates all records; terminal transitions without rationale/evidence fail; unsupported `schema_version` fails with a migration-needed finding; output is remediation-first and supports `--json`.
-**Key files:** `src/core/validation.ts`, `src/core/lifecycle.ts`, `src/commands/check.ts`, `test/core/lifecycle.test.ts`, `test/commands/check.test.ts`.
-**Dependencies:** WI-03, WI-04, WI-05. **Size:** L. *Lifecycle gate*
+**Done when:** the check service validates all records (CLI wiring lands at WI-09); it consumes the WI-04 non-throwing read path, so one malformed file becomes a finding rather than aborting the scan; terminal transitions without rationale/evidence fail; unsupported `schema_version` fails with a migration-needed finding; machine-derived tags are enforced as invariants (derived tags are a mandatory subset of `tags`; the namespaces `record/*`, `repo/*`, `status/*`, `visibility/*` are machine-owned; a stale machine-owned tag such as `status/open` on a `done` record fails; automated fix operations such as `check --fix` may rewrite only machine-owned tags, while WI-08 vocabulary rename/merge legitimately rewrites approved vocabulary tags through its own cascade path); a missing `ValidationContext` field needed by a derived tag is itself a finding, never a silent omission; output is remediation-first and supports `--json`.
+**Key files:** `src/core/validation.ts`, `src/core/lifecycle.ts`, `test/core/lifecycle.test.ts`, check-service tests.
+**Dependencies:** WI-03, WI-04, WI-05, WI-21. **Size:** L. *Lifecycle gate*
 
 ### WI-07: Implement tech-debt record type
 **Goal:** Ship the first public record type.
@@ -236,13 +238,13 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 
 ### WI-08: Implement record-local vocabulary service
 **Goal:** Prove controlled-vocabulary mechanics safely on introspection-owned records only.
-**Done when:** propose/approve/reject/list/usage/rename/merge/delete commands exist; rename/merge cascade only under the configured records root (`docs/records/**` by default); unknown raw tags fail with remediation; no command mutates markdown outside the records root.
-**Key files:** `src/core/tags.ts`, `src/core/vocabulary.ts`, `src/commands/vocab.ts`, `schemas/vocabulary.schema.json`, `test/core/vocabulary.test.ts`, `test/commands/vocab.test.ts`.
+**Done when:** propose/approve/reject/list/usage/rename/merge/delete exist as services (CLI wiring lands at WI-09); rename/merge cascade only under the configured records root (`docs/records/**` by default); unknown raw tags fail with remediation; no operation mutates markdown outside the records root.
+**Key files:** `src/core/tags.ts`, `src/core/vocabulary.ts`, `schemas/vocabulary.schema.json`, `test/core/vocabulary.test.ts`.
 **Dependencies:** WI-06, WI-07. **Size:** L. *Vocabulary gate*
 
 ### WI-09: Implement CLI command shell and presenters
 **Goal:** The agent-facing machine interface.
-**Done when:** CLI has `check`, `record create`, **`record transition`** (the named deliverable the Lifecycle gate runs through, wired to the WI-06 engine), `ids`, and `vocab` groups (`prime` and `export` commands land with WI-10/WI-11 respectively); human and JSON presenters are separate from domain logic (module layout is the implementer's); CLI tests run in-process (no subprocess); `--json` emits parseable JSON with no prose.
+**Done when:** all `src/commands/*` modules land here, wiring the WI-05/WI-06/WI-08 services: CLI has `check`, `record create`, **`record transition`** (the named deliverable the Lifecycle gate runs through), `ids`, and `vocab` groups (`prime` and `export` commands land with WI-10/WI-11 respectively); earlier WIs ship services only; human and JSON presenters are separate from domain logic (module layout is the implementer's); CLI tests run in-process (no subprocess); `--json` emits parseable JSON with no prose.
 **Key files:** `src/bin.ts`, `src/commands/*.ts`, `src/presenters/`, `test/cli/bin.test.ts`.
 **Dependencies:** WI-06, WI-08. **Size:** M
 
@@ -250,30 +252,38 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Goal:** The universal context primitive, zero-GNO.
 **Done when:** default `prime` scopes to current repo + active records; output bounded with omitted counts; flags per the Approach table; tests prove terminal records excluded by default; ranking tests use the injectable clock seam for determinism.
 **Key files:** `src/core/prime-selector.ts`, `src/commands/prime.ts`, `test/core/prime-selector.test.ts`, `test/commands/prime.test.ts`.
-**Dependencies:** WI-09. **Size:** M. *Prime gate*
+**Dependencies:** WI-09, WI-21 (cwd-based repo discovery comes from the config loader). **Size:** M. *Prime gate*
 
 ### WI-11: Implement export model and adapters
 **Goal:** Keep generated views disposable and GNO-specific concerns out of the core.
-**Done when:** neutral `ExportDocument` model exists; JSON export writes records + manifest; GNO export writes a GNO-compatible markdown projection; delete-and-recreate yields identical logical content; core validation/lifecycle/prime pass with GNO absent.
+**Done when:** neutral `ExportDocument` model exists; JSON export writes records + manifest; GNO export writes a GNO-compatible markdown projection; delete-and-recreate yields identical logical content; core validation/lifecycle/prime pass with GNO absent; exports are local artifacts that carry each record's `visibility` field, write only under `.introspection/generated/` unless an explicit destination is passed, and no v1 command claims a public or publish-safe export (that policy stays behind TD-014); the `RetrievalProvider` port also lands here with contract tests, a deterministic proving impl, and the GNO retrieval adapter exercised in tests only, since no core path consumes retrieval in v1 (Decision #6).
 **Key files:** `src/export/export-document.ts`, `src/export/json-exporter.ts`, `src/export/gno-exporter.ts`, `src/commands/export.ts`, `test/export/export-recreate.test.ts`, `test/export/boundary-no-gno.test.ts`.
 **Dependencies:** WI-09 (export needs neither `prime` nor its selector; runs parallel to WI-10). **Size:** M. *Export gate + Boundary gate*
 
 ### WI-12: Build backpressure tracker importer
 **Goal:** Convert the existing backpressure tracker into typed records with explicit dispositions.
-**Done when:** importer parses TD-001..TD-011; creates active records for TD-007/008/009/010/011 and terminal archive records for TD-001/002/003/004/006; corrects TD-011's stale ref to `docs/exec-plans/completed/bun-runtime-migration-2026-06-07.md`; import report lists every original TD ID and disposition.
+**Done when:** importer parses TD-001..TD-011; creates active records for TD-007/008/009/010/011 and terminal records for TD-001/002/003/004/006 per the disposition table below; preserves legacy numbers (BP-TD-007 keeps number 7) so the allocator resumes at `max+1`; corrects TD-011's stale ref to `docs/exec-plans/completed/bun-runtime-migration-2026-06-07.md`; import report lists every original TD ID and disposition.
+
+| Legacy entry | Status | Rationale | Evidence ref |
+|---|---|---|---|
+| TD-001 executor-coupled rules | `rejected` | Tied to executor's application boundaries, not general package material (MP cleanup ruling, 2026-06-01). | original tracker anchor in `source.refs` |
+| TD-002 package split triggers | `superseded` | Split-trigger policy is owned by the package/preset design docs. | `docs/design-docs/preset-architecture.md` |
+| TD-003 general/boundaries preset growth | `superseded` | Growth criteria are owned by rule intake. | `docs/design-docs/rule-intake.md` |
+| TD-004 ESLint RuleTester cross-check | `rejected` | Oxlint-only direction is settled; the portability cross-check was not pursued. | original tracker anchor in `source.refs` |
+| TD-006 optional hygiene gates | `superseded` | Earn-the-gate candidates are rule intake's job. During WI-14, add the two named rule candidates (`no-js-extension-imports`, `no-opaque-instance-fields`; reference impls in effect-smol `@effect/oxc`) to `rule-intake.md` if absent. | `docs/design-docs/rule-intake.md` |
 **Key files:** `src/importers/backpressure-tech-debt.ts`, `test/importers/backpressure-tech-debt.test.ts`, `test/fixtures/backpressure-tech-debt-tracker.md`.
 **Dependencies:** WI-05, WI-06, WI-07 (needs store/IDs/validation/record-type only; runs parallel to WI-10/WI-11). **Size:** M
 
 ### WI-13: Package the CLI for adoption
 **Phase-entry note:** Resolve TD-016 before packaging: remove placeholder version drift, document or consolidate test include duplication, and make the prose gate durable enough for post-scaffold docs.
 **Goal:** Make `introspection` consumable by backpressure checks locally, without publishing.
-**Done when:** CLI builds with shebang; package exports a bin named `introspection`; `pnpm pack` dry-run proves package contents; the packed tarball installs into a throwaway project and the `introspection` bin runs there (TD-CARD-018 artifact smoke); adoption docs cover the local-link dogfood path and the strict-cooldown publishing guidance for later.
-**Key files:** `package.json`, `tsdown.config.ts`, `docs/adoption.md`.
-**Dependencies:** WI-10, WI-11. **Size:** S
+**Done when:** the WI-01 scaffold's runtime drift is resolved first (engines gain the bun pin, `tsdown.config.ts` banner becomes `#!/usr/bin/env bun`, `CLAUDE.md` tooling posture names bun as the shipped-bin and script runtime with node retained for the TS toolchain); the package is CLI-only per Decision #10 (all runtime deps bundled; the current library-style exports are removed or marked internal); package exports a bin named `introspection`; `bun build --compile` emits the per-platform binaries from the tsdown bundle (darwin-arm64, linux-x64, linux-arm64) as platform packages (`@mplibunao/introspection-<platform>`) with `os`/`cpu` fields, wired as `optionalDependencies` of the main package whose bin becomes a thin launcher (resolution order: matching platform binary, then JS bundle on host bun, then an actionable error); `pnpm pack` dry-run proves package contents for every package; the packed tarball installs into a throwaway project and a real command runs there under bun, exercising YAML parsing and schema validation, plus once with no platform package present to prove the JS fallback (TD-CARD-018 artifact smoke); adoption docs cover the local-link dogfood path, the bun requirement, and the strict-cooldown publishing guidance for later.
+**Key files:** `package.json`, `tsdown.config.ts`, platform package manifests, `docs/adoption.md`.
+**Dependencies:** WI-10, WI-11. **Size:** M
 
 ### WI-14: Adopt introspection in backpressure
 **Goal:** Wire backpressure to the new tool without keeping the old tracker active.
-**Done when:** `.introspection/config.toml` + `vocabulary.toml` exist in backpressure; records generated under `docs/records/tech-debt/`; `docs/exec-plans/tech-debt-tracker.md` becomes a pointer stub; `CLAUDE.md` routes agents to `introspection prime`/`check`; `pnpm check` runs `introspection check` before prose; the CLI is consumed via a local link/`file:` dependency. npm publish is not required for the dogfood gate.
+**Done when:** `.introspection/config.toml` + `vocabulary.toml` exist in backpressure; records generated under `docs/records/tech-debt/`; backpressure's `.gitignore` excludes `.introspection/.locks/` and `.introspection/generated/`; `docs/exec-plans/tech-debt-tracker.md` becomes a pointer stub; `CLAUDE.md` routes agents to `introspection prime`/`check`; `pnpm check` runs `introspection check` before prose; the CLI is consumed via a local link/`file:` dependency. npm publish is not required for the dogfood gate.
 **Key files:** backpressure `.introspection/**`, `docs/records/**`, `docs/exec-plans/tech-debt-tracker.md`, `CLAUDE.md`, `package.json`, `pnpm-workspace.yaml`.
 **Dependencies:** WI-12, WI-13. **Size:** M
 
@@ -291,7 +301,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 
 ### WI-17: Self-dogfood introspection's own tech-debt tracker
 **Goal:** Move introspection's pre-planning TD-001..TD-014 into its own record substrate.
-**Done when:** introspection repo has its own `.introspection/**` config + vocabulary and `docs/records/**` records; TD-001..TD-014 migrated with deferred/roadmap status preserved; old tracker file becomes a pointer stub; `check` + `prime` pass in this repo.
+**Done when:** introspection repo has its own `.introspection/**` config + vocabulary and `docs/records/**` records; TD-001..TD-014 migrated with deferred/roadmap status preserved; `.gitignore` excludes `.introspection/.locks/` and `.introspection/generated/`; old tracker file becomes a pointer stub; `check` + `prime` pass in this repo.
 **Key files:** `/Users/mp/Projects/personal/introspection/.introspection/**`, `docs/records/**`, `docs/exec-plans/tech-debt-tracker.md`, `CLAUDE.md`.
 **Dependencies:** WI-15. **Size:** S
 
@@ -304,7 +314,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 
 ### WI-19: Publish to npm and switch backpressure to the published pin
 **Goal:** Move backpressure off the local link onto a published, catalog-pinned dependency.
-**Done when:** `@mplibunao/introspection` published via the changesets flow per TD-CARD-034 (npm Trusted Publishing OIDC + provenance, no token secrets, fail-closed pre-publish gate, mirroring backpressure's release boundary); backpressure's local link replaced by a strict-catalog pin; the 7-day `minimumReleaseAge` handled with scoped `minimumReleaseAgeExclude` if backpressure's pnpm supports it, else the pin lands after the release ages past the window; the TD-CARD-037 ruleset re-verified active (`repo.protection.verify`) before the auto-publish path goes live, since branch protection plus CI is that flow's safety boundary; `pnpm check` still passes.
+**Done when:** `@mplibunao/introspection` and its per-platform binary packages published via the changesets flow per TD-CARD-034 (npm Trusted Publishing OIDC + provenance, no token secrets, fail-closed pre-publish gate, mirroring backpressure's release boundary); npm Trusted Publishing bindings configured for the main package and each platform package, which is MP's manual browser step; backpressure's local link replaced by a strict-catalog pin; the 7-day `minimumReleaseAge` handled with scoped `minimumReleaseAgeExclude` if backpressure's pnpm supports it, else the pin lands after the release ages past the window (platform packages age in parallel); the TD-CARD-037 ruleset re-verified active (`repo.protection.verify`) before the auto-publish path goes live, since branch protection plus CI is that flow's safety boundary; `pnpm check` still passes.
 **Key files:** introspection `package.json`/`.changeset/`, backpressure `pnpm-workspace.yaml`, `package.json`.
 **Dependencies:** WI-15. **Size:** S
 
@@ -314,6 +324,13 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Setup (mirror backpressure):** lift `backpressure/stryker.config.mjs`'s shape: three targeting modes (`STRYKER_MUTATE` single-file worker loop, `STRYKER_SWEEP=1` full sweep, default behavioral gate with documented equivalent-survivor exclusions) and `break: null` thresholds. Mutation is an agent-run quality gate, not CI and not part of `check`. Reuse backpressure's `mutation-orchestrator`/`mutation-worker` skills for the triage loop. Mutation passes change test surface only (per the worker skill); if a survivor exposes a real kernel bug, fix it as normal work. Either way, rebuild and refresh the WI-13 pack / WI-14 link afterward so WI-15 gates against current bits.
 **Key files:** `stryker.config.mjs`, `docs/reports/mutation/`, `docs/references/mutation-testing.md`, `test/**`.
 **Dependencies:** WI-10, WI-11. **Size:** M
+
+### WI-21: Config and vocabulary loaders + repo context
+**Sequence:** numbering is not order; this runs before WI-05, which needs `repo_key`, `repo_slug`, the records root, and the lock root.
+**Goal:** Own repo discovery and the committed config surface that nearly every other subsystem consumes.
+**Done when:** a config loader discovers the nearest ancestor holding `.introspection/config.toml`, parses TOML with a cataloged runtime parser, validates against `schemas/config.schema.json`, and resolves the records root safely under the repo root; a vocabulary loader does the same against `schemas/vocabulary.schema.json`; a normalized repo context (repo root, config/vocab paths, `repo_key`, `repo_slug`, records root, default visibility, policy-doc pointers) is the single object downstream services consume; tests cover missing config, invalid TOML, schema violations, a records root escaping the repo root, and cwd-based discovery.
+**Key files:** `src/config/`, `schemas/config.schema.json`, `schemas/vocabulary.schema.json`, `test/config/`.
+**Dependencies:** WI-02. **Size:** M
 
 ## Risks
 
