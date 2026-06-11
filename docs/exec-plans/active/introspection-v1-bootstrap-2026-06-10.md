@@ -234,7 +234,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-03, WI-04, WI-05, WI-21. **Size:** L. *Lifecycle gate*
 
 ### WI-07: Implement tech-debt record type
-**Phase-entry note:** Move tech-debt lifecycle evidence ownership out of `techDebtRecordType.validate()` if it is still duplicated there; WI-06 core validation owns lifecycle evidence, and record-type validation should own tech-debt-specific checks only.
+**Status:** Complete on 2026-06-12. Committed as `a3bf467` (`feat: implement tech debt record type`). Verification passed: targeted tech-debt/lifecycle/validation/contract/schema tests and `corepack pnpm check`. Review and refactor gates reported no remaining blockers, should-fix issues, or substantive optional nits after the active-resolution lifecycle invariant, heading metadata alignment coverage, fenced-code heading hardening, and source-of-truth boundary wording update.
 **Goal:** Ship the first public record type.
 **Done when:** tech-debt schema enforces the tech-debt record shape (required body headings `## Problem`, `## Why deferred`, `## Revisit trigger`, optional `## Done when`; frontmatter `source` refs; owner/conversion links per the lifecycle rules); lifecycle transitions enforced; derived tags include `record/tech-debt`, `repo/<slug>`, `status/<state>`, `visibility/<value>`; prime summary + export projection exist.
 **Key files:** `src/record-types/tech-debt.ts`, `schemas/tech-debt-record.schema.json`, `test/record-types/tech-debt.test.ts`.
