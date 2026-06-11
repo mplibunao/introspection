@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://introspection.local/schemas/config.schema.json",
+  "title": ".introspection/config.toml decoded shape",
+  "description": "Schema for the committed TOML config that owns repo-local mechanics and policy document pointers.",
+  "type": "object",
+  "required": ["schema_version", "repo_key", "repo_slug", "records", "defaults"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "repo_key": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}$"
+    },
+    "repo_slug": {
+      "$comment": "Repo slugs become the value segment in the derived repo/<slug> tag, so they must be one GNO-compatible tag segment rather than a hierarchy.",
+      "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/tagSegment"
+    },
+    "records": {
+      "type": "object",
+      "required": ["root"],
+      "properties": {
+        "root": {
+          "type": "string",
+          "minLength": 1,
+          "default": "docs/records"
+        }
+      },
+      "additionalProperties": false
+    },
+    "defaults": {
+      "type": "object",
+      "required": ["visibility"],
+      "properties": {
+        "visibility": {
+          "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/visibility"
+        }
+      },
+      "additionalProperties": false
+    },
+    "prime": {
+      "type": "object",
+      "$comment": "WI-10 validation must enforce prime.hard_limit >= prime.default_limit when both values are present.",
+      "properties": {
+        "default_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "hard_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_docs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "path"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "applies_to": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$comment": "Quote TOML dates and other temporal values as strings before validating decoded TOML through JSON Schema."
+}

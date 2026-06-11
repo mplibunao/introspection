@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://introspection.local/schemas/vocabulary.schema.json",
+  "title": ".introspection/vocabulary.toml decoded shape",
+  "description": "Schema for the committed record-local controlled vocabulary.",
+  "type": "object",
+  "required": ["schema_version", "terms"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "terms": {
+      "type": "array",
+      "x-unique_by": ["tag"],
+      "items": {
+        "type": "object",
+        "required": ["tag", "status", "description", "provenance"],
+        "properties": {
+          "tag": {
+            "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/tag"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["approved", "provisional", "rejected"]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/tag"
+            },
+            "uniqueItems": true
+          },
+          "applies_to": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "provenance": {
+            "type": "object",
+            "required": ["kind", "ref"],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": ["seed", "plan", "record", "human", "import", "other"]
+              },
+              "ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "noted_at": {
+                "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/isoDateTimeString"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false,
+  "$comment": "The vocabulary schema owns tag term shape only. A future validator must enforce terms.x-unique_by so duplicate tag entries fail with remediation. WI-08 will own cascade mechanics such as rename, merge, usage, and delete-if-unused."
+}

@@ -22,5 +22,5 @@ This repo is MP's personal CLI substrate for governed markdown records. The v1 p
 
 - Keep active exec plans under `docs/exec-plans/active/`; move completed plans under `docs/exec-plans/completed/`.
 - `AGENTS.md` is a symlink to this file. Update this file, not the symlink.
-- WI-01 is scaffold-only. Do not implement schemas, record types, importers, the record engine, or backpressure adoption in this phase.
+- Follow the active bootstrap plan for the current work item. Do not implement later work items unless MP explicitly asks.
 - Use a hard cutover when behavior changes. Do not add backwards-compatibility shims unless MP asks.

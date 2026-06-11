@@ -9,6 +9,8 @@ catalog:
   '@mplibunao/oxlint-standards': 0.1.0
   '@mplibunao/tsconfig': 0.1.0
   '@types/node': 24.12.4
+  ajv: 8.17.1
+  ajv-formats: 3.0.1
   effect: 4.0.0-beta.73
   oxfmt: 0.43.0
   oxlint: 1.58.0

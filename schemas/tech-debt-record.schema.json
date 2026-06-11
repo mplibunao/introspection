@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://introspection.local/schemas/tech-debt-record.schema.json",
+  "title": "introspection tech-debt record frontmatter",
+  "description": "Frontmatter contract for the first public introspection record type. Required markdown body headings are declared through x-required_headings and enforced by the record checker once WI-06/WI-07 lands.",
+  "required": ["source"],
+  "properties": {
+    "schema_version": {
+      "$comment": "Validated by the base record schema; listed here so unevaluatedProperties keeps the tech-debt shape closed."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-TD-[0-9]{3,}$"
+    },
+    "repo_key": {
+      "$comment": "Validated by the base record schema; listed here so unevaluatedProperties keeps the tech-debt shape closed."
+    },
+    "record_type": {
+      "const": "tech-debt"
+    },
+    "number": {
+      "$comment": "Validated by the base record schema; listed here so unevaluatedProperties keeps the tech-debt shape closed."
+    },
+    "title": {
+      "$comment": "Validated by the base record schema; listed here so unevaluatedProperties keeps the tech-debt shape closed."
+    },
+    "status": {
+      "enum": ["open", "done", "rejected", "superseded", "moved"]
+    },
+    "type": {
+      "$comment": "Validated by the base record schema; listed here so unevaluatedProperties keeps the tech-debt shape closed."
+    },
+    "category": {
+      "const": "tech-debt"
+    },
+    "visibility": {
+      "$comment": "Validated by the base record schema; listed here so unevaluatedProperties keeps the tech-debt shape closed."
+    },
+    "created_at": {
+      "$comment": "Validated by the base record schema; listed here so unevaluatedProperties keeps the tech-debt shape closed."
+    },
+    "updated_at": {
+      "$comment": "Validated by the base record schema; listed here so unevaluatedProperties keeps the tech-debt shape closed."
+    },
+    "tags": {
+      "allOf": [
+        {
+          "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/tagList"
+        },
+        {
+          "contains": {
+            "const": "record/tech-debt"
+          }
+        }
+      ]
+    },
+    "source": {
+      "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/source"
+    },
+    "scope": {
+      "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/scope"
+    },
+    "resolution": {
+      "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/resolution"
+    },
+    "conversion_targets": {
+      "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/conversionTargets"
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "https://introspection.local/schemas/base-record.schema.json"
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "open"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "not": {
+          "required": ["resolution"]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": ["done", "rejected", "superseded", "moved"]
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "required": ["resolution"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "done"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "resolution": {
+            "properties": {
+              "disposition": {
+                "const": "done"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "rejected"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "resolution": {
+            "properties": {
+              "disposition": {
+                "const": "rejected"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "superseded"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "resolution": {
+            "properties": {
+              "disposition": {
+                "const": "superseded"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "moved"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "resolution": {
+            "properties": {
+              "disposition": {
+                "const": "moved"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": ["done", "superseded", "moved"]
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "resolution": {
+            "required": ["evidence_refs"]
+          }
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "x-required_headings": ["## Problem", "## Why deferred", "## Revisit trigger"],
+  "x-optional_headings": ["## Done when"],
+  "$comment": "Judgment lives in the markdown body headings. Frontmatter only carries machine-filterable facts and typed evidence shape."
+}

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://introspection.local/schemas/export-manifest.schema.json",
+  "title": "introspection export manifest",
+  "description": "Manifest for disposable generated export artifacts under .introspection/generated/.",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "generator", "repo", "records_root", "exports"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/isoDateTimeString"
+    },
+    "generator": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "const": "@mplibunao/introspection"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "repo": {
+      "type": "object",
+      "required": ["key", "slug"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]{1,15}$"
+        },
+        "slug": {
+          "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/tagSegment"
+        }
+      },
+      "additionalProperties": false
+    },
+    "records_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "exports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "path", "record_count"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["json", "gno-markdown"]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "record_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$comment": "Generated manifests are recreatable artifacts, not source of truth."
+}
