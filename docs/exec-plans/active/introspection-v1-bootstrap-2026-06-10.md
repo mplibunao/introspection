@@ -227,12 +227,14 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-04, WI-21. **Size:** M. *Concurrency gate*
 
 ### WI-06: Build lifecycle and validation engine
+**Status:** Complete on 2026-06-12. Committed as `4b1d99b` (`feat: add lifecycle validation engine`). Verification passed: targeted lifecycle/validation tests and `corepack pnpm check`. Review and refactor gates reported no remaining blockers, should-fix issues, or optional nits after report-surface cleanup and `correctedMachineTags()` incomplete-context hardening.
 **Goal:** Enforce schema, lifecycle, terminal evidence, links, visibility, and tag invariants.
 **Done when:** the check service validates all records (CLI wiring lands at WI-09); it consumes the WI-04 non-throwing read path, so one malformed file becomes a finding rather than aborting the scan; terminal transitions without rationale/evidence fail; unsupported `schema_version` fails with a migration-needed finding; machine-derived tags are enforced as invariants (derived tags are a mandatory subset of `tags`; the namespaces `record/*`, `repo/*`, `status/*`, `visibility/*` are machine-owned; a stale machine-owned tag such as `status/open` on a `done` record fails; automated fix operations such as `check --fix` may rewrite only machine-owned tags, while WI-08 vocabulary rename/merge legitimately rewrites approved vocabulary tags through its own cascade path); a missing `ValidationContext` field needed by a derived tag is itself a finding, never a silent omission; output is remediation-first and supports `--json`.
 **Key files:** `src/core/validation.ts`, `src/core/lifecycle.ts`, `test/core/lifecycle.test.ts`, check-service tests.
 **Dependencies:** WI-03, WI-04, WI-05, WI-21. **Size:** L. *Lifecycle gate*
 
 ### WI-07: Implement tech-debt record type
+**Phase-entry note:** Move tech-debt lifecycle evidence ownership out of `techDebtRecordType.validate()` if it is still duplicated there; WI-06 core validation owns lifecycle evidence, and record-type validation should own tech-debt-specific checks only.
 **Goal:** Ship the first public record type.
 **Done when:** tech-debt schema enforces the tech-debt record shape (required body headings `## Problem`, `## Why deferred`, `## Revisit trigger`, optional `## Done when`; frontmatter `source` refs; owner/conversion links per the lifecycle rules); lifecycle transitions enforced; derived tags include `record/tech-debt`, `repo/<slug>`, `status/<state>`, `visibility/<value>`; prime summary + export projection exist.
 **Key files:** `src/record-types/tech-debt.ts`, `schemas/tech-debt-record.schema.json`, `test/record-types/tech-debt.test.ts`.
