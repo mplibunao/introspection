@@ -255,6 +255,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-06, WI-08. **Size:** M
 
 ### WI-10: Implement deterministic `prime`
+**Status:** Complete on 2026-06-12. Committed as `fba5130` (`feat: add deterministic prime`). Verification passed: targeted selector/command tests and `corepack pnpm check` with 120 tests. Review and refactor gates reported no remaining blockers or should-fix issues after value-required prime flags rejected valueless usage. Optional future CLI/prime hardening remains: tighten `prime --path` matching if dogfood shows substring matching is too broad; centralize value-required flag validation instead of command-local checks that know the parser sentinel; add CLI regression coverage for invalid `[prime] default_limit/hard_limit` config; clarify that `prime --all` means all lifecycle statuses within the current repo.
 **Goal:** The universal context primitive, zero-GNO.
 **Done when:** default `prime` scopes to current repo + active records; output bounded with omitted counts; flags per the Approach table; tests prove terminal records excluded by default; ranking tests use the injectable clock seam for determinism.
 **Key files:** `src/core/prime-selector.ts`, `src/commands/prime.ts`, `test/core/prime-selector.test.ts`, `test/commands/prime.test.ts`.
