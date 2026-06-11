@@ -77,10 +77,22 @@ interface ParsedRecord<Frontmatter extends BaseRecordFrontmatter = BaseRecordFro
   readonly path?: string;
 }
 
+interface ValidationVocabularyTerm {
+  readonly tag: string;
+  readonly status: 'approved' | 'provisional' | 'rejected';
+  readonly aliases?: ReadonlyArray<string>;
+  readonly applies_to?: ReadonlyArray<string>;
+}
+
+interface ValidationVocabulary {
+  readonly terms: ReadonlyArray<ValidationVocabularyTerm>;
+}
+
 interface ValidationContext {
   readonly repoKey?: string;
   readonly repoSlug?: string;
   readonly recordsRoot?: string;
+  readonly vocabulary?: ValidationVocabulary;
 }
 
 interface JsonSchemaDocument extends JsonObject {
@@ -453,5 +465,7 @@ export type {
   Resolution,
   SourceBlock,
   ValidationContext,
+  ValidationVocabulary,
+  ValidationVocabularyTerm,
   Visibility,
 };

@@ -22,6 +22,8 @@ export type {
   Resolution,
   SourceBlock,
   ValidationContext,
+  ValidationVocabulary,
+  ValidationVocabularyTerm,
   Visibility,
 } from './core/record-type.js';
 export {
@@ -36,6 +38,25 @@ export {
   expectedMachineTags,
   tagIsMachineOwned,
 } from './core/validation.js';
+export { rawVocabularyTags, tagConformsToGrammar, tagHasNamespace } from './core/tags.js';
+export {
+  VocabularyServiceError,
+  approveVocabularyTerm,
+  deleteVocabularyTermIfUnused,
+  listVocabularyTerms,
+  mergeVocabularyTags,
+  proposeVocabularyTerm,
+  rejectVocabularyTerm,
+  renameVocabularyTag,
+  vocabularyUsage,
+} from './core/vocabulary.js';
+export type {
+  DeleteVocabularyTermResult,
+  VocabularyCascadeResult,
+  VocabularyTermInput,
+  VocabularyUsageEntry,
+  VocabularyUsageRecord,
+} from './core/vocabulary.js';
 export type { CheckFinding, CheckFindingSource, CheckReport } from './core/validation.js';
 export { recordTypeRegistry } from './record-types/registry.js';
 export { techDebtRecordType } from './record-types/tech-debt.js';

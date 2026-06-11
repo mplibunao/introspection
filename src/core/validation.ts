@@ -5,6 +5,8 @@ import addFormats from 'ajv-formats';
 import baseRecordSchema from '../../schemas/base-record.schema.json';
 import { duplicateRecordIdFindings, parseRecordId } from './id.js';
 import { validateRecordLifecycle } from './lifecycle.js';
+import { tagHasNamespace, tagIsMachineOwned } from './tags.js';
+import { vocabularyIntegrityFindings, vocabularyTagFindings } from './vocabulary-validation.js';
 import type {
   BaseRecordFrontmatter,
   Finding,
@@ -56,7 +58,6 @@ interface CheckRecordsOptions {
 }
 
 const supportedSchemaVersion = 1;
-const machineOwnedTagPrefixes = ['record/', 'repo/', 'status/', 'visibility/'] as const;
 
 const createAjv = (): Ajv2020 => {
   const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -282,12 +283,6 @@ const idInvariantFindings = <Frontmatter extends BaseRecordFrontmatter>(
   return findings;
 };
 
-const tagIsMachineOwned = (tag: string): boolean =>
-  machineOwnedTagPrefixes.some((prefix) => tag.startsWith(prefix));
-
-const tagHasNamespace = (tag: string, namespace: string): boolean =>
-  tag.startsWith(`${namespace}/`);
-
 const canValidateMachineOwnedTag = (tag: string, context: ValidationContext): boolean => {
   if (tagHasNamespace(tag, 'repo')) {
     return typeof context.repoSlug === 'string' && context.repoSlug.length > 0;
@@ -392,6 +387,7 @@ const validateParsedRecord = <Frontmatter extends BaseRecordFrontmatter>(
     ...validateRecordLifecycle(recordType, record),
     ...recordType.validate(record, context),
     ...tagInvariantFindings(recordType, record, context),
+    ...vocabularyTagFindings(record, context),
   ]);
 
   return findings.map((finding) => withRecordContext(finding, record));
@@ -420,6 +416,17 @@ const validateSuccessfulRead = (
   return validateParsedRecord(recordType, record, context);
 };
 
+const vocabularyContextFindings = (context: ValidationContext): ReadonlyArray<CheckFinding> => {
+  if (!context.vocabulary) {
+    return [];
+  }
+
+  return vocabularyIntegrityFindings(context.vocabulary).map((finding) => ({
+    ...finding,
+    source: 'corpus' as const,
+  }));
+};
+
 const checkRecordResults = (
   results: ReadonlyArray<RecordReadResult>,
   registry: RecordTypeRegistry,
@@ -434,6 +441,7 @@ const checkRecordResults = (
       ...finding,
       source: 'corpus' as const,
     })),
+    ...vocabularyContextFindings(context),
   ];
   const ok = findings.every((finding) => finding.severity !== 'error');
 

@@ -24,5 +24,7 @@ export type {
   Resolution,
   SourceBlock,
   ValidationContext,
+  ValidationVocabulary,
+  ValidationVocabularyTerm,
   Visibility,
 } from './record-type.js';
