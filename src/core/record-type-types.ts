@@ -1,5 +1,3 @@
-export const version = '0.0.0';
-
 export type {
   BaseRecordFrontmatter,
   ConversionTarget,
@@ -9,7 +7,11 @@ export type {
   ExportDocument,
   Finding,
   FindingSeverity,
+  JsonArray,
+  JsonObject,
+  JsonPrimitive,
   JsonSchemaDocument,
+  JsonValue,
   LifecycleDefinition,
   LifecycleEvidenceRequirement,
   LifecycleStatusDefinition,
@@ -23,11 +25,4 @@ export type {
   SourceBlock,
   ValidationContext,
   Visibility,
-} from './core/record-type.js';
-export {
-  createRecordTypeRegistry,
-  validateLifecycleEvidence,
-  validateTransition,
-} from './core/record-type.js';
-export { recordTypeRegistry } from './record-types/registry.js';
-export { techDebtRecordType } from './record-types/tech-debt.js';
+} from './record-type.js';
