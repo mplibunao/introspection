@@ -9,10 +9,6 @@ Two notes on scope and intent:
 
 ## Deferred within v1
 
-### TD-015: Resolve TypeScript 6 and tsdown peer mismatch
-
-WI-01 deliberately keeps the scaffold moving with `typescript@6.0.2` from the current stack canon even though `tsdown@0.20.3` declares a `typescript@^5.0.0` peer. The configured scaffold gates pass, and the current bundle is only a placeholder CLI smoke, so this is not a first-commit blocker. Do not let this drift become invisible once the package grows real build complexity. Resolve it by either pinning TypeScript to a tsdown-supported 5.x line, upgrading tsdown after it declares TypeScript 6 support, or documenting an intentional peer-policy exception if the canon keeps TypeScript 6. Trigger: before WI-03 adds the first real engine/record-type build surface, or earlier if `pnpm check`/`pnpm build` starts failing.
-
 ### TD-016: Retire WI-01 placeholder duplication before packaging/adoption
 
 WI-01 intentionally ships minimal placeholder code and explicit file lists so the scaffold can prove its toolchain without starting the record engine. Before this becomes a real package surface, remove the placeholder drift risks: make `package.json` the single version source for the CLI output or add a guard test; consolidate or document the duplicated Vitest include pattern between `vite.config.ts` and `vitest.config.ts`; and replace the hardcoded prose file list with tracked-file discovery plus explicit provenance exclusions, or update it whenever WI-02/WI-03 add first-class docs. Trigger: before WI-13 packages the CLI for adoption, and earlier for the prose-gate bullet when WI-02 adds schema/source-of-truth docs.

@@ -202,7 +202,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-01. **Size:** M
 
 ### WI-03: Implement the `RecordType` contract and conversion fixture
-**Phase-entry note:** Before adding this first real engine/record-type build surface, resolve or explicitly policy-document TD-015 (`typescript@6.0.2` with `tsdown@0.20.3`'s `typescript@^5.0.0` peer) so the scaffold's acceptable peer-risk does not become hidden tooling drift.
+**Phase-entry note:** TD-015 was resolved on 2026-06-11 by upgrading `tsdown` to 0.22.1 while keeping `typescript` at 6.0.2; `pnpm peers check` now passes with no peer-policy exception.
 **Goal:** Prove the engine contract supports conversion lifecycles, not only tech-debt open/closed.
 **Done when:** static registry exists; tech-debt placeholder registered; test-only conversion fixture registered in tests; contract tests prove a terminal conversion without `conversion_targets` fails.
 **Contract note:** consult the real backpressure entries (Background) and the mined tech-debt record shape when freezing the contract. A post-WI-12 contract revision is acceptable and cheap because the fixture + contract tests make it so; don't over-freeze against imagined data.
