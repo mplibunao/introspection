@@ -126,7 +126,13 @@ const duplicateRecordIdGroups = (
     .map(([id, recordsWithId]) => ({ id, records: Object.freeze([...recordsWithId]) }));
 };
 
-const recordLocation = (record: ParsedRecord): string => record.path ?? record.frontmatter.id;
+const recordLocation = (record: ParsedRecord): string => {
+  if ('relativePath' in record && typeof record.relativePath === 'string') {
+    return record.relativePath;
+  }
+
+  return record.path ?? record.frontmatter.id;
+};
 const duplicateRecordIdFindings = (records: ReadonlyArray<ParsedRecord>): ReadonlyArray<Finding> =>
   duplicateRecordIdGroups(records).map((group) => ({
     code: 'id.duplicate',

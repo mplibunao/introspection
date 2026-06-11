@@ -29,5 +29,13 @@ export {
   validateLifecycleEvidence,
   validateTransition,
 } from './core/record-type.js';
+export {
+  checkRecordResults,
+  checkRecords,
+  correctedMachineTags,
+  expectedMachineTags,
+  tagIsMachineOwned,
+} from './core/validation.js';
+export type { CheckFinding, CheckFindingSource, CheckReport } from './core/validation.js';
 export { recordTypeRegistry } from './record-types/registry.js';
 export { techDebtRecordType } from './record-types/tech-debt.js';
