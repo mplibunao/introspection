@@ -220,6 +220,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-03. **Size:** M
 
 ### WI-05: Build ID allocator and duplicate repair workflow
+**Status:** Complete on 2026-06-12. Committed as `43f2518` (`feat: add ID allocation and repair`). Verification passed: targeted WI-05 allocator/repair/worker tests and `corepack pnpm check`. Review and refactor gates reported no remaining blockers or should-fix issues after targeted lock-protocol fixes for stale reclaim, crash-recoverable admin locking, and owner-safe release.
 **Goal:** Make `(repo, key, number)` safe under same-worktree concurrency and repairable after branch merges.
 **Done when:** allocator follows the Decision #3 lock contract (crash-recoverable lock; scan+allocate+create inside it, with the no-clobber final-target create); duplicate IDs fail validation; the repair service renumbers one duplicate and updates structured refs per Decision #3 (CLI wiring lands at WI-09); concurrent-allocation simulation with two separate processes proves no duplicates in one worktree; stale-lock reclaim is tested.
 **Key files:** `src/core/id.ts`, `src/store/id-allocator.ts`, `test/store/id-allocator.test.ts`, repair-service tests.
