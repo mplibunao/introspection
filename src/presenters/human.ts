@@ -1,6 +1,7 @@
 import type { CheckFinding, CheckReport } from '../core/validation.js';
 import type { RepoContext, VocabularyTerm } from '../config/repo-context.js';
 import type { PrimeFilters, PrimeSelection } from '../core/prime-selector.js';
+import type { ExportServiceResult } from '../export/export-service.js';
 import type {
   DeleteVocabularyTermResult,
   VocabularyCascadeResult,
@@ -51,6 +52,11 @@ const checkHuman = (report: CheckReport): string => {
 
 const errorHuman = (error: CliErrorPayload): string =>
   line(`Error ${error.code}: ${error.message}`);
+
+const exportHuman = (result: ExportServiceResult): string =>
+  line(
+    `Exported ${result.recordsExported} record(s) to ${result.destinationDirectory}; manifest ${result.manifestPath}.`,
+  );
 
 const recordHuman = (record: StoredMarkdownRecord): string =>
   line(`Created ${record.frontmatter.id}: ${record.relativePath}`);
@@ -170,6 +176,7 @@ const vocabularyDeleteHuman = (result: DeleteVocabularyTermResult): string =>
 export {
   checkHuman,
   errorHuman,
+  exportHuman,
   primeHuman,
   recordHuman,
   repairHuman,

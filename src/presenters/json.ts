@@ -4,6 +4,7 @@ import type {
   VocabularyTerm,
 } from '../config/repo-context.js';
 import type { PrimeSelection } from '../core/prime-selector.js';
+import type { ExportServiceResult } from '../export/export-service.js';
 import type {
   DeleteVocabularyTermResult,
   VocabularyCascadeResult,
@@ -38,6 +39,17 @@ const recordSummary = (record: StoredMarkdownRecord): RecordSummary => ({
 const checkJson = (report: CheckReport): string => renderJson(report);
 
 const errorJson = (error: CliErrorPayload): string => renderJson({ ok: false, error });
+
+const exportJson = (result: ExportServiceResult): string =>
+  renderJson({
+    ok: true,
+    export: {
+      destinationDirectory: result.destinationDirectory,
+      manifestPath: result.manifestPath,
+      recordsExported: result.recordsExported,
+      manifest: result.manifest,
+    },
+  });
 
 const recordJson = (record: StoredMarkdownRecord): string =>
   renderJson({ ok: true, record: recordSummary(record) });
@@ -97,6 +109,7 @@ const vocabularyDeleteJson = (result: DeleteVocabularyTermResult): string =>
 export {
   checkJson,
   errorJson,
+  exportJson,
   primeJson,
   recordJson,
   repairJson,

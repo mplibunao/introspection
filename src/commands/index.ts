@@ -3,6 +3,7 @@ import { errorHuman } from '../presenters/human.js';
 import { errorJson } from '../presenters/json.js';
 
 import { checkCommand } from './check.js';
+import { exportCommand } from './export.js';
 import { cliArgumentError, failure, normalizeError } from './helpers.js';
 import { idsCommand } from './ids.js';
 import { primeCommand } from './prime.js';
@@ -19,6 +20,7 @@ import { vocabCommand } from './vocab.js';
 const commandHandlers = new Map<string, CommandHandler>([
   ['check', checkCommand],
   ['prime', primeCommand],
+  ['export', exportCommand],
   ['record', recordCommand],
   ['ids', idsCommand],
   ['vocab', vocabCommand],
@@ -29,6 +31,7 @@ const helpText = `introspection ${version}
 Commands:
   check                         Validate records.
   prime                         Show bounded active record context.
+  export                        Write disposable generated export artifacts.
   record create tech-debt       Create a tech-debt record.
   record transition             Move a record through its lifecycle.
   ids repair                    Repair one duplicate record ID.
