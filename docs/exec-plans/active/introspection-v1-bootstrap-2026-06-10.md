@@ -202,6 +202,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-01. **Size:** M
 
 ### WI-03: Implement the `RecordType` contract and conversion fixture
+**Status:** Complete on 2026-06-11. Committed as `fadfd82` (`feat: add record type contract`). Verification passed: targeted record-type contract tests and `corepack pnpm check`. Review and refactor gates reported no remaining blockers or should-fix issues.
 **Phase-entry note:** TD-015 was resolved on 2026-06-11 by upgrading `tsdown` to 0.22.1 while keeping `typescript` at 6.0.2; `pnpm peers check` now passes with no peer-policy exception.
 **Goal:** Prove the engine contract supports conversion lifecycles, not only tech-debt open/closed.
 **Done when:** static registry exists; tech-debt placeholder registered; test-only conversion fixture registered in tests; contract tests prove a terminal conversion without `conversion_targets` fails.
