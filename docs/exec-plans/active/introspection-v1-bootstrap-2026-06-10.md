@@ -327,6 +327,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-10, WI-11. **Size:** M
 
 ### WI-21: Config and vocabulary loaders + repo context
+**Status:** Complete on 2026-06-11. Committed as `d00d34b` (`feat: add repo context loaders`). Verification passed: targeted config loader tests and `corepack pnpm check`. Review and refactor gates reported no remaining blockers or should-fix issues.
 **Sequence:** numbering is not order; this runs before WI-05, which needs `repo_key`, `repo_slug`, the records root, and the lock root.
 **Goal:** Own repo discovery and the committed config surface that nearly every other subsystem consumes.
 **Done when:** a config loader discovers the nearest ancestor holding `.introspection/config.toml`, parses TOML with a cataloged runtime parser, validates against `schemas/config.schema.json`, and resolves the records root safely under the repo root; a vocabulary loader does the same against `schemas/vocabulary.schema.json`; a normalized repo context (repo root, config/vocab paths, `repo_key`, `repo_slug`, records root, default visibility, policy-doc pointers) is the single object downstream services consume; tests cover missing config, invalid TOML, schema violations, a records root escaping the repo root, and cwd-based discovery.
