@@ -1,8 +1,14 @@
-import { version } from './index.js';
+import { runCli } from './commands/index.js';
 
-const helpText = `introspection ${version}
+const userArgOffset = 2;
+const result = await runCli({ args: process.argv.slice(userArgOffset), cwd: process.cwd() });
 
-WI-01 scaffold is installed. Domain commands land in later work items.`;
+if (result.stdout.length > 0) {
+  process.stdout.write(result.stdout);
+}
 
-process.stdout.write(`${helpText}
-`);
+if (result.stderr.length > 0) {
+  process.stderr.write(result.stderr);
+}
+
+process.exitCode = result.exitCode;

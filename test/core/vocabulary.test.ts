@@ -20,9 +20,9 @@ import {
   proposeVocabularyTerm,
   rejectVocabularyTerm,
   renameVocabularyTag,
-  renderVocabularyToml,
   vocabularyUsage,
 } from '../../src/core/vocabulary.js';
+import { renderVocabularyToml } from '../../src/core/vocabulary-file.js';
 import type { ParsedRecord } from '../../src/core/record-type-types.js';
 import type { TechDebtFrontmatter } from '../../src/record-types/tech-debt-types.js';
 import { createMarkdownRecordStore } from '../../src/store/markdown-record-store.js';

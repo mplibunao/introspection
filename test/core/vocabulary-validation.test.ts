@@ -10,7 +10,8 @@ import type {
   VocabularyTerm,
 } from '../../src/config/repo-context.js';
 import { checkRecords } from '../../src/core/validation.js';
-import { proposeVocabularyTerm, renderVocabularyToml } from '../../src/core/vocabulary.js';
+import { proposeVocabularyTerm } from '../../src/core/vocabulary.js';
+import { renderVocabularyToml } from '../../src/core/vocabulary-file.js';
 import type { ParsedRecord, ValidationContext } from '../../src/core/record-type-types.js';
 import { recordTypeRegistry } from '../../src/record-types/registry.js';
 import type { TechDebtFrontmatter } from '../../src/record-types/tech-debt-types.js';

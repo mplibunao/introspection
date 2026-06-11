@@ -1,0 +1,113 @@
+import type { CheckFinding, CheckReport } from '../core/validation.js';
+import type { VocabularyTerm } from '../config/repo-context.js';
+import type {
+  DeleteVocabularyTermResult,
+  VocabularyCascadeResult,
+  VocabularyUsageEntry,
+} from '../core/vocabulary.js';
+import type { DuplicateRepairResult } from '../store/duplicate-repair-service.js';
+import type { StoredMarkdownRecord } from '../store/markdown-record-store.js';
+
+import type { CliErrorPayload } from '../commands/types.js';
+
+const newline = '\n';
+
+const line = (value: string): string => `${value}${newline}`;
+
+const findingLocation = (finding: CheckFinding): string => {
+  if (finding.recordPath && finding.recordId) {
+    return `${finding.recordId} (${finding.recordPath})`;
+  }
+
+  if (finding.recordPath) {
+    return finding.recordPath;
+  }
+
+  return finding.source;
+};
+
+const remediationSuffix = (finding: CheckFinding): string => {
+  if (finding.remediation) {
+    return ` Remediation: ${finding.remediation}`;
+  }
+
+  return '';
+};
+
+const findingLine = (finding: CheckFinding): string =>
+  `- [${finding.severity}] ${finding.code} at ${findingLocation(finding)}: ${finding.message}${remediationSuffix(finding)}`;
+
+const checkHuman = (report: CheckReport): string => {
+  if (report.ok) {
+    return line(`Check passed: ${report.checkedRecordCount} record(s) checked.`);
+  }
+
+  return `${[
+    `Check failed: ${report.findings.length} finding(s) across ${report.checkedRecordCount} parsed record(s).`,
+    ...report.findings.map(findingLine),
+  ].join(newline)}${newline}`;
+};
+
+const errorHuman = (error: CliErrorPayload): string =>
+  line(`Error ${error.code}: ${error.message}`);
+
+const recordHuman = (record: StoredMarkdownRecord): string =>
+  line(`Created ${record.frontmatter.id}: ${record.relativePath}`);
+
+const transitionHuman = (record: StoredMarkdownRecord): string =>
+  line(
+    `Transitioned ${record.frontmatter.id} to ${record.frontmatter.status}: ${record.relativePath}`,
+  );
+
+const repairHuman = (result: DuplicateRepairResult): string =>
+  `${[
+    `Repaired duplicate ${result.oldId} → ${result.newId}.`,
+    `Moved ${result.oldPath} → ${result.newPath}.`,
+    `Body prose occurrences reported: ${result.bodyOccurrences.length}.`,
+  ].join(newline)}${newline}`;
+
+const vocabularyTermLine = (term: VocabularyTerm): string =>
+  `- ${term.tag} [${term.status}] ${term.description}`;
+
+const vocabularyTermsHuman = (terms: ReadonlyArray<VocabularyTerm>): string => {
+  if (terms.length === 0) {
+    return line('No vocabulary terms matched.');
+  }
+
+  return `${terms.map(vocabularyTermLine).join(newline)}${newline}`;
+};
+
+const vocabularyMutationHuman = (action: string, tag: string): string =>
+  line(`${action} vocabulary term ${tag}.`);
+
+const vocabularyCascadeHuman = (result: VocabularyCascadeResult, action: string): string =>
+  `${[
+    `${action} ${result.fromTag} → ${result.toTag}.`,
+    `Changed records: ${result.changedRecordPaths.length}`,
+    ...result.changedRecordPaths.map((recordPath) => `- ${recordPath}`),
+  ].join(newline)}${newline}`;
+
+const vocabularyUsageHuman = (usage: ReadonlyArray<VocabularyUsageEntry>): string => {
+  const lines = usage.flatMap((entry) => [
+    `${entry.tag}: ${entry.records.length} record(s)`,
+    ...entry.records.map((record) => `- ${record.id} ${record.path}`),
+  ]);
+
+  return `${lines.join(newline)}${newline}`;
+};
+
+const vocabularyDeleteHuman = (result: DeleteVocabularyTermResult): string =>
+  line(`Deleted unused vocabulary term ${result.deletedTag}.`);
+
+export {
+  checkHuman,
+  errorHuman,
+  recordHuman,
+  repairHuman,
+  transitionHuman,
+  vocabularyCascadeHuman,
+  vocabularyDeleteHuman,
+  vocabularyMutationHuman,
+  vocabularyTermsHuman,
+  vocabularyUsageHuman,
+};

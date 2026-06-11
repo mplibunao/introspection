@@ -306,15 +306,22 @@ const loadConfigFile = async (configPath: string): Promise<IntrospectionConfig> 
   throw schemaViolationError(validate, 'config', configPath);
 };
 
-const loadVocabularyFile = async (vocabularyPath: string): Promise<IntrospectionVocabulary> => {
-  const decodedVocabulary = await parseTomlFile(vocabularyPath, 'vocabulary');
+const assertVocabularyShape: (
+  value: unknown,
+  vocabularyPath: string,
+) => asserts value is IntrospectionVocabulary = (value, vocabularyPath) => {
   const validate = vocabularyValidator();
 
-  if (isVocabularyShape(decodedVocabulary, validate)) {
-    return decodedVocabulary;
+  if (!isVocabularyShape(value, validate)) {
+    throw schemaViolationError(validate, 'vocabulary', vocabularyPath);
   }
+};
 
-  throw schemaViolationError(validate, 'vocabulary', vocabularyPath);
+const loadVocabularyFile = async (vocabularyPath: string): Promise<IntrospectionVocabulary> => {
+  const decodedVocabulary = await parseTomlFile(vocabularyPath, 'vocabulary');
+  assertVocabularyShape(decodedVocabulary, vocabularyPath);
+
+  return decodedVocabulary;
 };
 
 const relativePathIsInsideOrEqualRoot = (relativePath: string): boolean =>
@@ -456,7 +463,14 @@ const loadRepoContext = async (options: LoadRepoContextOptions = {}): Promise<Re
   };
 };
 
-export { ConfigLoadError, findConfigPath, loadConfigFile, loadRepoContext, loadVocabularyFile };
+export {
+  ConfigLoadError,
+  assertVocabularyShape,
+  findConfigPath,
+  loadConfigFile,
+  loadRepoContext,
+  loadVocabularyFile,
+};
 export type {
   ConfigDefaults,
   ConfigPrimeDefaults,

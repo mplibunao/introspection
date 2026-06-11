@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { loadVocabularyFile } from '../config/repo-context.js';
+import { assertVocabularyShape, loadVocabularyFile } from '../config/repo-context.js';
 // eslint-disable-next-line no-duplicate-imports -- Import-style rules require top-level type imports next to this runtime import.
 import type { IntrospectionVocabulary, VocabularyTerm } from '../config/repo-context.js';
 import { withLocalNamedLock } from '../store/local-lock.js';
@@ -8,7 +8,7 @@ import type { StoredMarkdownRecord } from '../store/markdown-record-store.js';
 import { IntrospectionError } from './errors.js';
 import type { ParsedRecord } from './record-type-types.js';
 import { tagConformsToGrammar, tagIsMachineOwned } from './tags.js';
-import { renderVocabularyToml, sortedTerms, writeVocabularyFile } from './vocabulary-file.js';
+import { sortedTerms, writeVocabularyFile } from './vocabulary-file.js';
 import type {
   DeleteVocabularyTermRequest,
   DeleteVocabularyTermResult,
@@ -191,6 +191,7 @@ const persistVocabulary = async (
   context: VocabularyMutationContext,
   vocabulary: IntrospectionVocabulary,
 ): Promise<IntrospectionVocabulary> => {
+  assertVocabularyShape(vocabulary, context.vocabularyPath);
   assertVocabularyIntegrity(vocabulary);
   await writeVocabularyFile(context.vocabularyPath, vocabulary);
 
@@ -493,7 +494,6 @@ export {
   proposeVocabularyTerm,
   rejectVocabularyTerm,
   renameVocabularyTag,
-  renderVocabularyToml,
   vocabularyTagFindings,
   vocabularyUsage,
 };
