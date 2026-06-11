@@ -14,6 +14,7 @@ catalog:
   effect: 4.0.0-beta.73
   oxfmt: 0.43.0
   oxlint: 1.58.0
+  toml: 4.1.1
   tsdown: 0.22.1
   typescript: 6.0.2
   vite-plus: 0.1.15

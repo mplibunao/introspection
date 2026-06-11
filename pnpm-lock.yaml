@@ -36,6 +36,9 @@ catalogs:
     oxlint:
       specifier: 1.58.0
       version: 1.58.0
+    toml:
+      specifier: 4.1.1
+      version: 4.1.1
     tsdown:
       specifier: 0.22.1
       version: 0.22.1
@@ -60,9 +63,18 @@ importers:
 
   .:
     dependencies:
+      ajv:
+        specifier: 'catalog:'
+        version: 8.17.1
+      ajv-formats:
+        specifier: 'catalog:'
+        version: 3.0.1(ajv@8.17.1)
       effect:
         specifier: 'catalog:'
         version: 4.0.0-beta.73
+      toml:
+        specifier: 'catalog:'
+        version: 4.1.1
     devDependencies:
       '@changesets/cli':
         specifier: 'catalog:'
@@ -79,12 +91,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.12.4
-      ajv:
-        specifier: 'catalog:'
-        version: 8.17.1
-      ajv-formats:
-        specifier: 'catalog:'
-        version: 3.0.1(ajv@8.17.1)
       oxfmt:
         specifier: 'catalog:'
         version: 0.43.0

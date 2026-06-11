@@ -30,7 +30,10 @@
     "typecheck": "tsc -b"
   },
   "dependencies": {
-    "effect": "catalog:"
+    "ajv": "catalog:",
+    "ajv-formats": "catalog:",
+    "effect": "catalog:",
+    "toml": "catalog:"
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
@@ -38,8 +41,6 @@
     "@mplibunao/oxlint-standards": "catalog:",
     "@mplibunao/tsconfig": "catalog:",
     "@types/node": "catalog:",
-    "ajv": "catalog:",
-    "ajv-formats": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "tsdown": "catalog:",
