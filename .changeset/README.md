@@ -1,3 +1,5 @@
 # Changesets
 
-Add changesets here when a future work item changes the published package surface.
+Use `pnpm changeset` to describe package-facing changes. Changesets owns package version bumps, package changelogs, the Version Packages PR, npm publishing, tags, and GitHub releases.
+
+Steady-state releases run through `.github/workflows/release.yml`. The workflow uses npm Trusted Publishing with OIDC provenance and does not use registry token secrets.

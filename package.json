@@ -9,6 +9,7 @@
   "files": [
     "dist",
     "docs/adoption.md",
+    "docs/references/release-readiness.md",
     "CHANGELOG.md",
     "README.md"
   ],
@@ -31,11 +32,15 @@
     "lint": "vp lint --max-warnings 0",
     "pack:dry-run": "pnpm build && pnpm --recursive pack --dry-run",
     "pack:smoke": "bun scripts/packed-tarball-smoke.ts",
+    "prepublishOnly": "pnpm release:prepare",
     "prose": "scripts/prose-files.sh",
     "prose:sync": "scripts/setup-vale.sh",
+    "release": "pnpm release:prepare && changeset publish",
+    "release:prepare": "pnpm pack:dry-run && pnpm pack:smoke",
     "test": "vitest run",
     "test:mutation": "stryker run",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "version-packages": "changeset version && pnpm install --lockfile-only"
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",

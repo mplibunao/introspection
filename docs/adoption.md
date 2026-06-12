@@ -21,6 +21,6 @@ The adopting repo must not keep a second active tracker once records become the 
 
 ## Publishing guidance
 
-Publishing is intentionally outside WI-13. When WI-19 publishes `@mplibunao/introspection` and the platform packages, publish all packages through the changesets release flow and npm Trusted Publishing.
+Publishing is intentionally outside WI-13. WI-19 publishes `@mplibunao/introspection` and the platform packages through the Changesets release flow described in [release readiness](references/release-readiness.md).
 
 Backpressure uses strict dependency cooldowns. A newly published package cannot be consumed there until it passes the configured release-age window, unless WI-19 adds a scoped cooldown exclusion that the package manager supports. Do not bypass that policy with postinstall downloads or ad-hoc global installs.
