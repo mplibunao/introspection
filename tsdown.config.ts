@@ -2,7 +2,7 @@ import { defineConfig } from 'tsdown';
 
 export default defineConfig({
   banner: {
-    js: '#!/usr/bin/env node\n',
+    js: '#!/usr/bin/env bun\n',
   },
   clean: true,
   entry: ['src/bin.ts'],

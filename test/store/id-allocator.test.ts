@@ -28,6 +28,7 @@ const jsonIndentSpaces = 2;
 const workerProcessCount = 2;
 const staleReclaimWorkerProcessCount = 4;
 const concurrencyTestTimeoutMs = 60_000;
+const lockOwnershipTestTimeoutMs = 10_000;
 const freshLockStaleAfterMs = 60_000;
 const staleReclaimDelayMs = 10;
 const workerLockDelayMs = 200;
@@ -391,11 +392,15 @@ describe('WI-05 ID allocation lock reclaim', () => {
 });
 
 describe('WI-05 ID allocation lock ownership', () => {
-  it('does not let a stale-reclaimed live holder remove the new owner lock', async () => {
-    await withTempRoot(async (root) => {
-      await runOwnerSafeReclaimScenario(contextFor(root));
-    });
-  });
+  it(
+    'does not let a stale-reclaimed live holder remove the new owner lock',
+    async () => {
+      await withTempRoot(async (root) => {
+        await runOwnerSafeReclaimScenario(contextFor(root));
+      });
+    },
+    lockOwnershipTestTimeoutMs,
+  );
 });
 
 const assertTwoProcessAllocation = async (context: IdAllocatorContext): Promise<void> => {

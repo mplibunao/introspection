@@ -2,11 +2,11 @@
 import { access, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { version } from '../index.js';
 import { IntrospectionError } from '../core/errors.js';
 import type { RepoContext } from '../config/repo-context.js';
 import type { RecordTypeRegistry, ValidationContext } from '../core/record-type.js';
 import type { MarkdownRecordStore } from '../store/markdown-record-store.js';
+import { packageVersion } from '../version.js';
 
 import { buildExportDocuments, buildExportManifest } from './export-document.js';
 import type {
@@ -302,7 +302,7 @@ const writeExports = async (
     entries,
     generatedAt: options.generatedAt,
     repo: options.repo,
-    version,
+    version: packageVersion,
   });
 
   return writeResult(destinationDirectory, manifest, records, formats);

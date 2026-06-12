@@ -4,36 +4,36 @@
   "description": "Governed markdown record substrate and CLI for agent-maintained repositories.",
   "license": "MIT",
   "bin": {
-    "introspection": "./dist/bin.mjs"
+    "introspection": "./dist/launcher.sh"
   },
   "files": [
     "dist",
+    "docs/adoption.md",
     "CHANGELOG.md",
     "README.md"
   ],
   "type": "module",
+  "exports": {},
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "pnpm build:bundle && pnpm build:launcher && pnpm build:binaries",
+    "build:binaries": "bun scripts/build-platform-binaries.ts",
+    "build:bundle": "tsdown",
+    "build:launcher": "mkdir -p dist && cp scripts/launcher.sh dist/launcher.sh && chmod +x dist/launcher.sh",
     "changeset": "changeset",
     "check": "vp check && pnpm typecheck && pnpm test && pnpm build && pnpm prose",
     "check:fix": "vp check --fix",
     "fmt": "vp fmt",
     "format": "pnpm fmt",
     "lint": "vp lint --max-warnings 0",
-    "pack:dry-run": "pnpm build && pnpm pack --dry-run",
+    "pack:dry-run": "pnpm build && pnpm --recursive pack --dry-run",
+    "pack:smoke": "bun scripts/packed-tarball-smoke.ts",
     "prose": "scripts/prose-files.sh",
     "prose:sync": "scripts/setup-vale.sh",
     "test": "vitest run",
     "typecheck": "tsc -b"
-  },
-  "dependencies": {
-    "ajv": "catalog:",
-    "ajv-formats": "catalog:",
-    "effect": "catalog:",
-    "toml": "catalog:"
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
@@ -41,15 +41,25 @@
     "@mplibunao/oxlint-standards": "catalog:",
     "@mplibunao/tsconfig": "catalog:",
     "@types/node": "catalog:",
+    "ajv": "catalog:",
+    "ajv-formats": "catalog:",
+    "effect": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
+    "toml": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:",
     "yaml": "catalog:"
   },
+  "optionalDependencies": {
+    "@mplibunao/introspection-darwin-arm64": "workspace:*",
+    "@mplibunao/introspection-linux-arm64": "workspace:*",
+    "@mplibunao/introspection-linux-x64": "workspace:*"
+  },
   "engines": {
+    "bun": ">=1.3.11",
     "node": ">=24.15.0"
   },
   "packageManager": "pnpm@11.4.0"

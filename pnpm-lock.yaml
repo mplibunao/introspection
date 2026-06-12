@@ -62,19 +62,6 @@ overrides:
 importers:
 
   .:
-    dependencies:
-      ajv:
-        specifier: 'catalog:'
-        version: 8.17.1
-      ajv-formats:
-        specifier: 'catalog:'
-        version: 3.0.1(ajv@8.17.1)
-      effect:
-        specifier: 'catalog:'
-        version: 4.0.0-beta.73
-      toml:
-        specifier: 'catalog:'
-        version: 4.1.1
     devDependencies:
       '@changesets/cli':
         specifier: 'catalog:'
@@ -91,12 +78,24 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.12.4
+      ajv:
+        specifier: 'catalog:'
+        version: 8.17.1
+      ajv-formats:
+        specifier: 'catalog:'
+        version: 3.0.1(ajv@8.17.1)
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-beta.73
       oxfmt:
         specifier: 'catalog:'
         version: 0.43.0
       oxlint:
         specifier: 'catalog:'
         version: 1.58.0(oxlint-tsgolint@0.18.1)
+      toml:
+        specifier: 'catalog:'
+        version: 4.1.1
       tsdown:
         specifier: 'catalog:'
         version: 0.22.1(typescript@6.0.2)
@@ -112,6 +111,22 @@ importers:
       yaml:
         specifier: 'catalog:'
         version: 2.9.0
+    optionalDependencies:
+      '@mplibunao/introspection-darwin-arm64':
+        specifier: workspace:*
+        version: link:packages/introspection-darwin-arm64
+      '@mplibunao/introspection-linux-arm64':
+        specifier: workspace:*
+        version: link:packages/introspection-linux-arm64
+      '@mplibunao/introspection-linux-x64':
+        specifier: workspace:*
+        version: link:packages/introspection-linux-x64
+
+  packages/introspection-darwin-arm64: {}
+
+  packages/introspection-linux-arm64: {}
+
+  packages/introspection-linux-x64: {}
 
 packages:
 

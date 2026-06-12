@@ -1,6 +1,6 @@
-import { version } from '../index.js';
 import { errorHuman } from '../presenters/human.js';
 import { errorJson } from '../presenters/json.js';
+import { packageVersion } from '../version.js';
 
 import { checkCommand } from './check.js';
 import { exportCommand } from './export.js';
@@ -26,7 +26,7 @@ const commandHandlers = new Map<string, CommandHandler>([
   ['vocab', vocabCommand],
 ]);
 
-const helpText = `introspection ${version}
+const helpText = `introspection ${packageVersion}
 
 Commands:
   check                         Validate records.

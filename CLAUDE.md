@@ -12,7 +12,8 @@ This repo is MP's personal CLI substrate for governed markdown records. The v1 p
 ## Tooling posture
 
 - Package manager: pnpm 11 via Corepack and `packageManager`.
-- Runtime baseline: Node 24.15.0 or newer, pinned for local tooling in `mise.toml`.
+- Shipped CLI runtime: Bun 1.3.11 or newer. The npm bin prefers a compiled platform binary, then falls back to the bundled JS CLI on host Bun.
+- Repo toolchain runtime: Node 24.15.0 or newer remains pinned for TypeScript, Vitest, and local tooling.
 - Local front door: vite-plus through `vp check`.
 - TypeScript posture: strict config via `@mplibunao/tsconfig`.
 - Lint posture: oxlint standards via `@mplibunao/oxlint-standards`, with hard ceilings treated as errors.
