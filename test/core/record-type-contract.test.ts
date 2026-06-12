@@ -1,6 +1,12 @@
 import { assert, describe, it } from '@effect/vitest';
 
-import { createRecordTypeRegistry, validateTransition } from '../../src/core/record-type.js';
+import {
+  createRecordTypeRegistry,
+  firstNonEmptyBodyLine,
+  validateLifecycleEvidence,
+  validateTransition,
+  validateTransitionEvidence,
+} from '../../src/core/record-type.js';
 import type {
   Finding,
   ParsedRecord,
@@ -15,6 +21,13 @@ import type { ConversionFixtureFrontmatter } from '../fixtures/conversion-fixtur
 
 const schemaVersion = 1;
 const timestamp = '2026-06-10T00:00:00Z';
+const singleRegisteredRecordTypeCount = 1;
+
+const conversionTarget = {
+  kind: 'repo-instruction' as const,
+  ref: 'CLAUDE.md',
+  rationale: 'The deferral was converted into durable repo guidance.',
+};
 
 const findingCodes = (findings: ReadonlyArray<Finding>): ReadonlyArray<string> =>
   findings.map((finding) => finding.code);
@@ -92,9 +105,21 @@ describe('WI-03 static record type registry', () => {
 
     assert.strictEqual(typedTechDebt.key, 'tech-debt');
     assert.strictEqual(recordTypeRegistry.require('tech-debt'), techDebtRecordType);
+    assert.deepStrictEqual(recordTypeRegistry.entries(), [techDebtRecordType]);
     assert.deepStrictEqual(recordTypeRegistry.keys(), ['tech-debt']);
     assert.ok(!recordTypeRegistry.get('missing'));
     assert.ok(!recordTypeRegistry.get('conversion-fixture'));
+  });
+
+  it('creates a registry for a single record type without treating the first entry as duplicate', () => {
+    assert.strictEqual(
+      createRecordTypeRegistry([techDebtRecordType]).entries().length,
+      singleRegisteredRecordTypeCount,
+    );
+    assert.strictEqual(
+      createRecordTypeRegistry([conversionFixtureRecordType]).entries()[0],
+      conversionFixtureRecordType,
+    );
   });
 
   it('rejects duplicate static registrations', () => {
@@ -189,13 +214,7 @@ describe('WI-03 conversion fixture contract', () => {
 
   it('rejects transition validation when the record status does not match the target', () => {
     const record = conversionRecord({
-      conversion_targets: [
-        {
-          kind: 'repo-instruction',
-          ref: 'CLAUDE.md',
-          rationale: 'The deferral was converted into durable repo guidance.',
-        },
-      ],
+      conversion_targets: [conversionTarget],
     });
 
     assert.deepStrictEqual(
@@ -210,19 +229,87 @@ describe('WI-03 conversion fixture contract', () => {
     const record = conversionRecord({
       status: 'converted',
       resolution: resolution('converted'),
-      conversion_targets: [
-        {
-          kind: 'repo-instruction',
-          ref: 'CLAUDE.md',
-          rationale: 'The deferral was converted into durable repo guidance.',
-        },
-      ],
+      conversion_targets: [conversionTarget],
     });
 
     assert.deepStrictEqual(conversionFixtureRecordType.validate(record, {}), []);
     assert.deepStrictEqual(
       validateTransition(conversionFixtureRecordType, 'observed', 'converted', record),
       [],
+    );
+  });
+});
+
+describe('WI-20 record type lifecycle mutation coverage', () => {
+  it('rejects unsupported transition evidence by source and target status', () => {
+    const converted = conversionRecord({
+      status: 'converted',
+      resolution: resolution('converted'),
+      conversion_targets: [conversionTarget],
+    });
+
+    assert.deepStrictEqual(
+      findingCodes(
+        validateTransitionEvidence(conversionFixtureRecordType, 'rejected', 'converted', converted),
+      ),
+      ['lifecycle.transition.unsupported'],
+    );
+    assert.deepStrictEqual(
+      findingCodes(
+        validateTransition(conversionFixtureRecordType, 'rejected', 'converted', converted),
+      ),
+      ['lifecycle.transition.unsupported'],
+    );
+    assert.deepStrictEqual(
+      findingCodes(
+        validateTransitionEvidence(
+          conversionFixtureRecordType,
+          'observed',
+          'missing-target',
+          conversionRecord(),
+        ),
+      ),
+      ['lifecycle.transition.unsupported'],
+    );
+  });
+
+  it('honors active statuses that explicitly allow resolution metadata', () => {
+    const recordTypeAllowingActiveResolution: RecordType<ConversionFixtureFrontmatter> = {
+      ...conversionFixtureRecordType,
+      lifecycle: {
+        ...conversionFixtureRecordType.lifecycle,
+        statuses: {
+          ...conversionFixtureRecordType.lifecycle.statuses,
+          observed: { kind: 'active', allowsActiveResolution: true },
+        },
+      },
+    };
+
+    assert.deepStrictEqual(
+      validateLifecycleEvidence(
+        recordTypeAllowingActiveResolution,
+        conversionRecord({ resolution: resolution('observed') }),
+      ),
+      [],
+    );
+  });
+
+  it('reports resolution disposition mismatches with stable codes', () => {
+    assert.deepStrictEqual(
+      findingCodes(
+        validateLifecycleEvidence(
+          conversionFixtureRecordType,
+          conversionRecord({ status: 'rejected', resolution: resolution('converted') }),
+        ),
+      ),
+      ['lifecycle.resolution.disposition_mismatch'],
+    );
+  });
+
+  it('extracts the first non-empty trimmed body line for summaries', () => {
+    assert.strictEqual(
+      firstNonEmptyBodyLine('\n  \n  Durable summary.  \nLater detail.'),
+      'Durable summary.',
     );
   });
 });

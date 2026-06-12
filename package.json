@@ -33,6 +33,7 @@
     "prose": "scripts/prose-files.sh",
     "prose:sync": "scripts/setup-vale.sh",
     "test": "vitest run",
+    "test:mutation": "stryker run",
     "typecheck": "tsc -b"
   },
   "devDependencies": {
@@ -40,6 +41,8 @@
     "@effect/vitest": "catalog:",
     "@mplibunao/oxlint-standards": "catalog:",
     "@mplibunao/tsconfig": "catalog:",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "catalog:",
     "ajv": "catalog:",
     "ajv-formats": "catalog:",

@@ -92,18 +92,30 @@ describe('WI-07 tech-debt body shape', () => {
       findings.map((finding) => headingFromFindingMessage(finding.message)),
       techDebtSchema['x-required_headings'],
     );
+    assert.deepStrictEqual(
+      findings.map((finding) => ({
+        path: finding.path,
+        remediationIncludesHeading: finding.remediation?.includes('## ') ?? false,
+        severity: finding.severity,
+      })),
+      [
+        { path: ['body'], remediationIncludesHeading: true, severity: 'error' },
+        { path: ['body'], remediationIncludesHeading: true, severity: 'error' },
+        { path: ['body'], remediationIncludesHeading: true, severity: 'error' },
+      ],
+    );
   });
 
   it('ignores required headings inside backtick and tilde fenced code blocks', () => {
     const body = [
       'One-line summary.',
-      '```markdown',
+      '  ```markdown',
       '## Problem',
       '## Why deferred',
-      '```',
-      '~~~',
+      '  ```',
+      '  ~~~',
       '## Revisit trigger',
-      '~~~',
+      '  ~~~',
     ].join('\n');
 
     const findings = techDebtRecordType.validate(record({}, body), validationContext);
@@ -113,6 +125,42 @@ describe('WI-07 tech-debt body shape', () => {
       'tech_debt.body.heading.required',
       'tech_debt.body.heading.required',
     ]);
+  });
+});
+
+describe('WI-07 tech-debt body shape fences and whitespace', () => {
+  it('accepts required headings after closing fenced code blocks', () => {
+    const body = [
+      'One-line summary.',
+      '```markdown',
+      '## Problem',
+      '```',
+      '~~~markdown',
+      '## Why deferred',
+      '~~~',
+      '## Problem',
+      'The current implementation carries a known limitation.',
+      '## Why deferred',
+      'The owning phase has a narrower scope.',
+      '## Revisit trigger',
+      'Revisit when the owning work item starts.',
+    ].join('\n');
+
+    assert.deepStrictEqual(techDebtRecordType.validate(record({}, body), validationContext), []);
+  });
+
+  it('accepts headings with surrounding whitespace outside fenced code blocks', () => {
+    const body = [
+      'One-line summary.',
+      '  ## Problem  ',
+      'The current implementation carries a known limitation.',
+      '  ## Why deferred',
+      'The owning phase has a narrower scope.',
+      '## Revisit trigger  ',
+      'Revisit when the owning work item starts.',
+    ].join('\n\n');
+
+    assert.deepStrictEqual(techDebtRecordType.validate(record({}, body), validationContext), []);
   });
 
   it('accepts the optional Done when heading when required headings are present', () => {

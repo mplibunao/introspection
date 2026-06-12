@@ -5,7 +5,11 @@ import path from 'node:path';
 import { assert, describe, it } from '@effect/vitest';
 
 import { checkRecords, correctedMachineTags } from '../../src/core/validation.js';
-import type { ParsedRecord, ValidationContext } from '../../src/core/record-type-types.js';
+import type {
+  BaseRecordFrontmatter,
+  ParsedRecord,
+  ValidationContext,
+} from '../../src/core/record-type-types.js';
 import { recordTypeRegistry } from '../../src/record-types/registry.js';
 import { techDebtRecordType } from '../../src/record-types/tech-debt.js';
 import type { TechDebtFrontmatter } from '../../src/record-types/tech-debt-types.js';
@@ -31,7 +35,9 @@ const withTempRoot = async (testBody: (root: string) => Promise<void>): Promise<
 };
 
 const techDebtRecord = (
-  frontmatter: Partial<TechDebtFrontmatter> = {},
+  frontmatter: Omit<Partial<TechDebtFrontmatter>, 'record_type'> & {
+    readonly record_type?: string;
+  } = {},
   body = [
     'Validation service fixture.',
     '## Problem',
@@ -41,7 +47,7 @@ const techDebtRecord = (
     '## Revisit trigger',
     'Revisit when validation behavior changes.',
   ].join('\n\n'),
-): ParsedRecord<TechDebtFrontmatter> => ({
+): ParsedRecord => ({
   frontmatter: {
     schema_version: 1,
     id: 'BP-TD-007',
@@ -61,7 +67,7 @@ const techDebtRecord = (
       refs: [{ kind: 'tracker', ref: 'docs/exec-plans/tech-debt-tracker.md#td-007' }],
     },
     ...frontmatter,
-  } as TechDebtFrontmatter,
+  } satisfies BaseRecordFrontmatter,
   body,
 });
 
@@ -86,7 +92,7 @@ const findingsByCode = (
 
 const checkSingleRecord = async (
   root: string,
-  record: ParsedRecord<TechDebtFrontmatter>,
+  record: ParsedRecord,
   context: ValidationContext = validationContext,
 ): Promise<CheckReport> => {
   const store = createMarkdownRecordStore({ root });
@@ -96,6 +102,17 @@ const checkSingleRecord = async (
 };
 
 describe('WI-06 check service corpus behavior', () => {
+  it('marks a clean corpus ok with no findings', async () => {
+    await withTempRoot(async (root) => {
+      const report = await checkSingleRecord(root, techDebtRecord());
+
+      assert.strictEqual(report.ok, true);
+      assert.strictEqual(report.checkedRecordCount, 1);
+      assert.strictEqual(report.failedReadCount, 0);
+      assert.deepStrictEqual(report.findings, []);
+    });
+  });
+
   it('turns one malformed record into a finding and still validates the rest of the corpus', async () => {
     await withTempRoot(async (root) => {
       const store = createMarkdownRecordStore({ root });
@@ -145,6 +162,19 @@ describe('WI-06 check service corpus behavior', () => {
 });
 
 describe('WI-06 schema, link, and version findings', () => {
+  it('emits an unsupported record-type finding before record-type schema validation', async () => {
+    await withTempRoot(async (root) => {
+      const report = await checkSingleRecord(root, techDebtRecord({ record_type: 'unknown-type' }));
+      const [finding] = findingsByCode(report, 'record_type.unsupported');
+
+      assert.strictEqual(report.ok, false);
+      assert.deepStrictEqual(finding?.path, ['record_type']);
+      assert.strictEqual(finding?.severity, 'error');
+      assert.match(finding?.message ?? '', /unknown-type/u);
+      assert.match(finding?.remediation ?? '', /tech-debt/u);
+    });
+  });
+
   it('emits an unsupported schema-version finding with migration-first remediation', async () => {
     await withTempRoot(async (root) => {
       const report = await checkSingleRecord(
@@ -231,6 +261,48 @@ describe('WI-06 schema link findings', () => {
       );
       assert.deepStrictEqual(schemaViolation?.path, ['source', 'refs', 0, 'ref']);
       assert.match(schemaViolation?.remediation ?? '', /match the record-type JSON Schema/u);
+    });
+  });
+});
+
+describe('WI-06 ID and repo invariants', () => {
+  it('reports repo-key, ID-shape, and number mismatches with stable finding paths', async () => {
+    await withTempRoot(async (root) => {
+      const store = createMarkdownRecordStore({ root });
+      await store.createRecord(
+        'tech-debt/open/repo-mismatch.md',
+        techDebtRecord({ id: 'OTHER-TD-007', repo_key: 'OTHER' }),
+      );
+      await store.createRecord('tech-debt/open/invalid-id.md', techDebtRecord({ id: 'NOT-A-TD' }));
+      await store.createRecord(
+        'tech-debt/open/number-mismatch.md',
+        techDebtRecord({ id: 'BP-TD-008', number: 7 }),
+      );
+
+      const report = await checkRecords({
+        context: validationContext,
+        registry: recordTypeRegistry,
+        store,
+      });
+
+      assert.deepStrictEqual(
+        findingCodes(report)
+          .filter((code) =>
+            ['repo_key.mismatch', 'id.invalid_for_record_type', 'id.number_mismatch'].includes(
+              code,
+            ),
+          )
+          .sort(),
+        [
+          'id.invalid_for_record_type',
+          'id.invalid_for_record_type',
+          'id.number_mismatch',
+          'repo_key.mismatch',
+        ],
+      );
+      assert.deepStrictEqual(findingsByCode(report, 'repo_key.mismatch')[0]?.path, ['repo_key']);
+      assert.deepStrictEqual(findingsByCode(report, 'id.invalid_for_record_type')[0]?.path, ['id']);
+      assert.deepStrictEqual(findingsByCode(report, 'id.number_mismatch')[0]?.path, ['number']);
     });
   });
 });

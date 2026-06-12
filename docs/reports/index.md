@@ -1,3 +1,7 @@
 # Reports
 
-Generated or curated verification reports will live here when later work items add them.
+Generated or curated verification reports live here.
+
+## Report areas
+
+- [Mutation reports](mutation/)

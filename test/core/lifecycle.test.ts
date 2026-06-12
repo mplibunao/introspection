@@ -1,6 +1,10 @@
 import { assert, describe, it } from '@effect/vitest';
 
-import { validateRecordLifecycle } from '../../src/core/lifecycle.js';
+import {
+  statusIsTerminal,
+  terminalStatuses,
+  validateRecordLifecycle,
+} from '../../src/core/lifecycle.js';
 import type { Finding, ParsedRecord, Resolution } from '../../src/core/record-type-types.js';
 import { techDebtRecordType } from '../../src/record-types/tech-debt.js';
 import type { TechDebtFrontmatter } from '../../src/record-types/tech-debt-types.js';
@@ -40,6 +44,20 @@ const resolution = (disposition: TechDebtFrontmatter['status']): Resolution => (
   disposition,
   resolved_at: timestamp,
   rationale: `The ${disposition} terminal state has a rationale.`,
+});
+
+describe('WI-06 lifecycle status helpers', () => {
+  it('lists only terminal statuses and classifies unknown statuses as active', () => {
+    assert.deepStrictEqual(terminalStatuses(techDebtRecordType), [
+      'done',
+      'rejected',
+      'superseded',
+      'moved',
+    ]);
+    assert.strictEqual(statusIsTerminal(techDebtRecordType, 'done'), true);
+    assert.strictEqual(statusIsTerminal(techDebtRecordType, 'open'), false);
+    assert.strictEqual(statusIsTerminal(techDebtRecordType, 'unknown'), false);
+  });
 });
 
 describe('WI-06 lifecycle evidence validation', () => {

@@ -2,6 +2,7 @@ node_modules/
 dist/
 packages/*/bin/introspection
 coverage/
+reports/mutation/
 .pnpm-store/
 .stryker-tmp/
 .npm-cache/

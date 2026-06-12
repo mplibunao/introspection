@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- WI-05 keeps allocator, lock-reclaim, and process-concurrency coverage together so the race-test helpers stay local. */
 import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, utimes, writeFile } from 'node:fs/promises';
 import os from 'node:os';
@@ -5,9 +6,12 @@ import path from 'node:path';
 
 import { assert, describe, it } from '@effect/vitest';
 
+import { IntrospectionError } from '../../src/core/errors.js';
 import {
   duplicateRecordIdFindings,
   duplicateRecordIdGroups,
+  maxRecordNumber,
+  nextRecordNumber,
   parseRecordId,
   recordFileName,
   renderRecordId,
@@ -24,6 +28,15 @@ const timestamp = '2026-06-10T00:00:00Z';
 const expectedParsedNumber = 7;
 const highExistingNumber = 7;
 const expectedNextNumber = 8;
+const parsedIdCandidateNumber = 9;
+const nextParsedIdCandidateNumber = 10;
+const ignoredOtherRepoNumber = 99;
+const ignoredOtherRecordTypeNumber = 100;
+const noScannableRecordNumber = 0;
+const unsafeRecordNumber = Number.MAX_SAFE_INTEGER + 1;
+const zeroRecordNumber = 0;
+const fractionalRecordNumber = 1.5;
+const unsafeParsedRecordId = `BP-TD-${unsafeRecordNumber}`;
 const jsonIndentSpaces = 2;
 const workerProcessCount = 2;
 const staleReclaimWorkerProcessCount = 4;
@@ -196,12 +209,35 @@ describe('WI-05 ID formatting and duplicate validation helpers', () => {
       'BP-TD-1000',
     );
     assert.deepStrictEqual(parseRecordId('BP-TD-007', 'BP', 'TD')?.number, expectedParsedNumber);
+    assert.strictEqual(parseRecordId('BP-TD-1', 'BP', 'TD'), null);
+    assert.strictEqual(parseRecordId('BP-TD-000', 'BP', 'TD'), null);
+    assert.strictEqual(parseRecordId(unsafeParsedRecordId, 'BP', 'TD'), null);
+    assert.throws(
+      () => renderRecordId({ repoKey: 'BP', typePrefix: 'TD', number: zeroRecordNumber }),
+      /positive integers/u,
+    );
+    assert.throws(
+      () => renderRecordId({ repoKey: 'BP', typePrefix: 'TD', number: fractionalRecordNumber }),
+      /positive integers/u,
+    );
   });
 
   it('returns service-level validation findings for duplicate record IDs', () => {
+    const duplicateWithNumericRelativePath = {
+      ...techDebtRecord({ id: 'BP-TD-007', number: 7, title: 'Duplicate ID fallback' }),
+      path: '/repo/docs/records/tech-debt/open/fallback.md',
+      relativePath: zeroRecordNumber,
+    };
     const records = [
-      techDebtRecord({ id: 'BP-TD-007', number: 7 }),
-      techDebtRecord({ id: 'BP-TD-007', number: 7, title: 'Duplicate ID' }),
+      {
+        ...techDebtRecord({ id: 'BP-TD-007', number: 7 }),
+        relativePath: 'tech-debt/open/bp-td-007.md',
+      },
+      {
+        ...techDebtRecord({ id: 'BP-TD-007', number: 7, title: 'Duplicate ID' }),
+        path: '/repo/docs/records/tech-debt/open/duplicate.md',
+      },
+      duplicateWithNumericRelativePath,
       techDebtRecord({ id: 'BP-TD-008', number: 8 }),
     ];
 
@@ -211,12 +247,82 @@ describe('WI-05 ID formatting and duplicate validation helpers', () => {
     assert.strictEqual(groups.length, 1);
     assert.strictEqual(groups[0]?.id, 'BP-TD-007');
     assert.strictEqual(findings.length, 1);
-    assert.strictEqual(findings[0]?.code, 'id.duplicate');
-    assert.strictEqual(findings[0]?.severity, 'error');
+    assert.deepStrictEqual(findings[0], {
+      code: 'id.duplicate',
+      severity: 'error',
+      message: 'Record ID "BP-TD-007" appears in 3 records.',
+      path: ['id', 'BP-TD-007'],
+      remediation:
+        'Repair one duplicate before validation can pass. Duplicate locations: tech-debt/open/bp-td-007.md, /repo/docs/records/tech-debt/open/duplicate.md, /repo/docs/records/tech-debt/open/fallback.md.',
+    });
+  });
+});
+
+describe('WI-20 ID scan mutation coverage', () => {
+  it('scans next numbers only from matching repo/type records and valid ID candidates', () => {
+    const otherRecordTypeRecord: ParsedRecord = {
+      ...techDebtRecord({ id: 'BP-CF-100', number: ignoredOtherRecordTypeNumber }),
+      frontmatter: {
+        ...techDebtRecord({ id: 'BP-CF-100', number: ignoredOtherRecordTypeNumber }).frontmatter,
+        record_type: 'conversion-fixture',
+      },
+    };
+    const records = [
+      techDebtRecord({ id: 'not-a-record-id', number: expectedParsedNumber }),
+      techDebtRecord({
+        id: renderRecordId({ repoKey: 'BP', typePrefix: 'TD', number: parsedIdCandidateNumber }),
+        number: expectedParsedNumber,
+      }),
+      techDebtRecord({ id: 'OTHER-TD-099', number: ignoredOtherRepoNumber, repo_key: 'OTHER' }),
+      otherRecordTypeRecord,
+    ];
+
+    assert.strictEqual(
+      nextRecordNumber(records, { repoKey: 'BP', recordType: techDebtRecordType }),
+      nextParsedIdCandidateNumber,
+    );
+  });
+
+  it('ignores unsafe numeric frontmatter when scanning record numbers', () => {
+    assert.strictEqual(
+      maxRecordNumber([techDebtRecord({ id: 'not-a-record-id', number: unsafeRecordNumber })], {
+        repoKey: 'BP',
+        recordType: techDebtRecordType,
+      }),
+      noScannableRecordNumber,
+    );
   });
 });
 
 describe('WI-05 lock-backed ID allocation', () => {
+  it('rejects record factories that change the assigned ID or number', async () => {
+    await withTempRoot(async (root) => {
+      const context = contextFor(root);
+
+      try {
+        await allocateRecord({
+          context,
+          makeRecord: (identity) =>
+            recordFromIdentity({
+              ...identity,
+              id: 'BP-TD-999',
+            }),
+          recordType: techDebtRecordType,
+        });
+        assert.fail('Expected allocator identity preservation to fail.');
+      } catch (error) {
+        assert.ok(error instanceof IntrospectionError);
+        assert.strictEqual(error.code, 'id_allocator.identity_mismatch');
+        assert.deepStrictEqual(error.details?.['actual'], { id: 'BP-TD-999', number: 1 });
+        assert.deepStrictEqual(error.details?.['expected'], {
+          id: 'BP-TD-001',
+          number: 1,
+          relativePath: 'tech-debt/open/bp-td-001.md',
+        });
+      }
+    });
+  });
+
   it('scans existing records, preserves gaps, and allocates max plus one under the lock', async () => {
     await withTempRoot(async (root) => {
       const context = contextFor(root);

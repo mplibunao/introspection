@@ -1,5 +1,6 @@
-/* eslint-disable no-magic-numbers -- Regression fixtures use fixed record IDs to prove path behavior. */
-import { access, mkdir, mkdtemp, rm } from 'node:fs/promises';
+/* eslint-disable max-statements, no-magic-numbers -- Regression fixtures use fixed record IDs and artifact assertions to prove path and hash behavior. */
+import { createHash } from 'node:crypto';
+import { access, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -81,6 +82,8 @@ const sharedBasenameExportRecord = (
   sourcePath: string,
 ): ExportRecordDocument => exportRecord(techDebtRecord(number, title), sourcePath);
 
+const sha256 = (content: string): string => createHash('sha256').update(content).digest('hex');
+
 const pathExists = async (candidatePath: string): Promise<boolean> => {
   try {
     await access(candidatePath);
@@ -132,16 +135,23 @@ describe('WI-11 GNO exporter path safety', () => {
       const first = sharedBasenameExportRecord(101, 'First shared basename', 'one/shared.md');
       const second = sharedBasenameExportRecord(102, 'Second shared basename', 'two/shared.md');
 
-      await writeGnoProjection({ outputDirectory, records: [first, second] });
+      const result = await writeGnoProjection({ outputDirectory, records: [first, second] });
+      const firstPath = path.join(outputDirectory, 'tech-debt/open/bp-td-101.md');
+      const secondPath = path.join(outputDirectory, 'tech-debt/open/bp-td-102.md');
+      const firstContent = await readFile(firstPath, 'utf8');
+      const secondContent = await readFile(secondPath, 'utf8');
+      const expectedProjectionHash = sha256(
+        [
+          `tech-debt/open/bp-td-101.md:${sha256(firstContent)}`,
+          `tech-debt/open/bp-td-102.md:${sha256(secondContent)}`,
+        ].join('\n'),
+      );
 
-      assert.strictEqual(
-        await pathExists(path.join(outputDirectory, 'tech-debt/open/bp-td-101.md')),
-        true,
-      );
-      assert.strictEqual(
-        await pathExists(path.join(outputDirectory, 'tech-debt/open/bp-td-102.md')),
-        true,
-      );
+      assert.strictEqual(await pathExists(firstPath), true);
+      assert.strictEqual(await pathExists(secondPath), true);
+      assert.match(firstContent, /tags:\n {2}- record\/tech-debt\n {2}- repo\/backpressure/u);
+      assert.strictEqual(result.recordCount, 2);
+      assert.strictEqual(result.sha256, expectedProjectionHash);
     });
   });
 });
