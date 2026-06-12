@@ -269,6 +269,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-09 (export needs neither `prime` nor its selector; runs parallel to WI-10). **Size:** M. *Export gate + Boundary gate*
 
 ### WI-12: Build backpressure tracker importer
+**Status:** Complete on 2026-06-12. Committed as `56c18e8` (`feat: add backpressure tracker importer`). Verification passed: targeted importer tests and `corepack pnpm check` with 140 tests. Review and refactor gates reported no remaining blockers or should-fix issues; optional reusable-importer hardening remains deferred to WI-14/future reuse: duplicate legacy-ID detection, all-target preflight before writes, rendered legacy-gap report line, and fixture drift protection by running against the real tracker during adoption.
 **Goal:** Convert the existing backpressure tracker into typed records with explicit dispositions.
 **Done when:** importer parses TD-001..TD-011; creates active records for TD-007/008/009/010/011 and terminal records for TD-001/002/003/004/006 per the disposition table below; preserves legacy numbers (BP-TD-007 keeps number 7) so the allocator resumes at `max+1`; corrects TD-011's stale ref to `docs/exec-plans/completed/bun-runtime-migration-2026-06-07.md`; import report lists every original TD ID and disposition.
 
@@ -290,6 +291,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-10, WI-11. **Size:** M
 
 ### WI-14: Adopt introspection in backpressure
+**Phase-entry note:** Run the WI-12 importer against the real backpressure tracker and an empty records root. If the importer is promoted beyond this one-time migration, first harden it with duplicate legacy-ID detection, all-target preflight before writes, and a human report line for preserved legacy gaps such as TD-005.
 **Goal:** Wire backpressure to the new tool without keeping the old tracker active.
 **Done when:** `.introspection/config.toml` + `vocabulary.toml` exist in backpressure; records generated under `docs/records/tech-debt/`; backpressure's `.gitignore` excludes `.introspection/.locks/` and `.introspection/generated/`; `docs/exec-plans/tech-debt-tracker.md` becomes a pointer stub; `CLAUDE.md` routes agents to `introspection prime`/`check`; `pnpm check` runs `introspection check` before prose; the CLI is consumed via a local link/`file:` dependency. npm publish is not required for the dogfood gate.
 **Key files:** backpressure `.introspection/**`, `docs/records/**`, `docs/exec-plans/tech-debt-tracker.md`, `CLAUDE.md`, `package.json`, `pnpm-workspace.yaml`.
