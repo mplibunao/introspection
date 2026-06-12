@@ -1,6 +1,8 @@
 # Critique: tracker-governance plan (2026-06-01)
 
-**Scope.** Execution critique of `docs/exec-plans/active/tracker-governance-2026-06-01.md` against its source `context_builder` export `/Users/mp/Projects/personal/backpressure/prompt-exports/oracle-plan-2026-06-01-112202-tracker-governance-7-c692.md`. The six checkpoint decisions (markdown tracker; governance design doc; archive-don't-delete; detail schema; global hardening this session; TD-003 deleted) are settled, so I critique their execution, not the choices. Grounding spot-checked: the tracker has 9 entries with a gap at TD-005 and a single-paragraph header (`tech-debt-tracker.md:3`); no doc references a `TD-xxx` ID outside the tracker; the claude-toolkit schema fields are confirmed.
+> **Final disposition: MINED INTO INTROSPECTION V1 (2026-06-12).** This critique is preserved only as companion design input for `tracker-governance-2026-06-01.md`; do not treat it as a live review queue. The relevant findings were mined into the active bootstrap plan's tech-debt record shape and resolved through the WI-15 backpressure dogfood gate. Continue from `../exec-plans/active/introspection-v1-bootstrap-2026-06-10.md`, especially WI-15 and WI-16.
+
+**Scope.** Historical execution critique of the superseded tracker-governance plan against its source `context_builder` export `/Users/mp/Projects/personal/backpressure/prompt-exports/oracle-plan-2026-06-01-112202-tracker-governance-7-c692.md`. The six checkpoint decisions (markdown tracker; governance design doc; archive-don't-delete; detail schema; global hardening this session; TD-003 deleted) were settled at the time, so this critique reviewed their execution, not the choices. Grounding spot-checked: the tracker had 9 entries with a gap at TD-005 and a single-paragraph header (`tech-debt-tracker.md:3`); no doc referenced a `TD-xxx` ID outside the tracker; the claude-toolkit schema fields were confirmed.
 
 ## 1. Top 3 under-specified seams
 

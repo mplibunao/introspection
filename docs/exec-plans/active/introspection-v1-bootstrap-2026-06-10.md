@@ -307,6 +307,7 @@ Card IDs reference the taste-distillery canon (see Background: Stack canon).
 **Dependencies:** WI-14, WI-20 (mutation pass complete). **Size:** S. *all 8 gates confirmed on the first customer*
 
 ### WI-16: Finalize superseded design-input disposition
+**Status:** Complete on 2026-06-12. The tracker-governance design input and companion critique now carry final "MINED INTO INTROSPECTION V1" dispositions, explicitly state that the old work items/review queue are not active, and route readers to this bootstrap plan plus the WI-15 dogfood result. Verification passed: `git grep` found no `CLAUDE.md` route or active-plan treatment that makes tracker-governance active; repo prose passed; direct Vale on the two edited design-input docs passed; review and refactor/cleanup gates reported no blockers, should-fix items, or durable follow-ups.
 **Goal:** Prevent the old backpressure governance plan from looking active.
 **Done when:** design-input docs carry a "mined into introspection v1" disposition; no router/plan treats tracker-governance as active; links point at this plan and/or the dogfood result.
 **Key files:** `docs/design-input/tracker-governance-2026-06-01.md` + companion critique doc.
