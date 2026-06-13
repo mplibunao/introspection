@@ -1,5 +1,4 @@
-/* eslint-disable no-duplicate-imports, import/max-dependencies -- Import-style rules require separate top-level type imports. This command module legitimately depends on all listed modules to implement both create and transition in one cohesive unit; the count reflects scope, not excess coupling. */
-import { access } from 'node:fs/promises';
+/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 
 import type { RepoContext } from '../config/repo-context.js';
 import { IntrospectionError } from '../core/errors.js';
@@ -245,15 +244,6 @@ const transitionFailure = (
     ),
   );
 
-const pathExists = async (absolutePath: string): Promise<boolean> => {
-  try {
-    await access(absolutePath);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
 const assertTransitionTargetAvailable = async (
   store: Awaited<ReturnType<typeof loadAppServices>>['store'],
   record: StoredMarkdownRecord,
@@ -263,7 +253,7 @@ const assertTransitionTargetAvailable = async (
     return;
   }
 
-  if (await pathExists(`${store.root}/${targetPath}`)) {
+  if (await store.pathExists(targetPath)) {
     throw new IntrospectionError(
       'record.transition.target_exists',
       'Transition target path already exists, so the source record was left unchanged.',
