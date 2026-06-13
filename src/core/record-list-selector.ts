@@ -247,31 +247,30 @@ const toSelectedRecord = (
 
 const assertPositiveInteger = (value: number, label: string): void => {
   if (!Number.isInteger(value) || value < 1) {
-    throw new IntrospectionError('prime.limit.invalid', `${label} must be a positive integer.`, {
-      label,
-      value,
-    });
+    throw new IntrospectionError(
+      'records.list.limit.invalid',
+      `${label} must be a positive integer.`,
+      {
+        label,
+        value,
+      },
+    );
   }
 };
 
 const assertLimitOrder = (defaultLimit: number, hardLimit: number): void => {
   if (hardLimit < defaultLimit) {
     throw new IntrospectionError(
-      'prime.limit.config_invalid',
-      'prime.hard_limit must be greater than or equal to prime.default_limit.',
+      'records.list.limit.config_invalid',
+      'records.list.hard_limit must be greater than or equal to records.list.default_limit.',
       { defaultLimit, hardLimit },
     );
   }
 };
 
-/*
- * The limit error codes and labels keep the prime.* namespace on purpose: they
- * name the still-existing [prime] config block (default_limit/hard_limit).
- * WI-R02 renames that block to [records.list] and should rename these in lockstep.
- */
 const validateConfiguredLimits = (defaultLimit: number, hardLimit: number): void => {
-  assertPositiveInteger(defaultLimit, 'prime.default_limit');
-  assertPositiveInteger(hardLimit, 'prime.hard_limit');
+  assertPositiveInteger(defaultLimit, 'records.list.default_limit');
+  assertPositiveInteger(hardLimit, 'records.list.hard_limit');
   assertLimitOrder(defaultLimit, hardLimit);
 };
 

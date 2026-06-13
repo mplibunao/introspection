@@ -7,7 +7,7 @@ export {
 } from './repo-context.js';
 export type {
   ConfigDefaults,
-  ConfigPrimeDefaults,
+  ConfigRecordListDefaults,
   ConfigRecords,
   IntrospectionConfig,
   IntrospectionVocabulary,

@@ -48,7 +48,7 @@ const seedRepo = async (root: string): Promise<void> => {
       '[defaults]',
       'visibility = "local-only"',
       '',
-      '[prime]',
+      '[records.list]',
       'default_limit = 10',
       'hard_limit = 10',
       '',

@@ -213,22 +213,22 @@ describe('record-list selector', () => {
     const invalidCases = [
       {
         options: { limits: { defaultLimit: 0, hardLimit: 4 } },
-        expectedCode: 'prime.limit.invalid',
-        expectedLabel: 'prime.default_limit',
+        expectedCode: 'records.list.limit.invalid',
+        expectedLabel: 'records.list.default_limit',
       },
       {
         options: { limits: { defaultLimit: 2.5, hardLimit: 4 } },
-        expectedCode: 'prime.limit.invalid',
-        expectedLabel: 'prime.default_limit',
+        expectedCode: 'records.list.limit.invalid',
+        expectedLabel: 'records.list.default_limit',
       },
       {
         options: { limits: { defaultLimit: 3, hardLimit: 2 } },
-        expectedCode: 'prime.limit.config_invalid',
+        expectedCode: 'records.list.limit.config_invalid',
         expectedLabel: null,
       },
       {
         options: { requestedLimit: 0, limits: { defaultLimit: 2, hardLimit: 4 } },
-        expectedCode: 'prime.limit.invalid',
+        expectedCode: 'records.list.limit.invalid',
         expectedLabel: '--limit',
       },
     ] as const;
@@ -242,7 +242,7 @@ describe('record-list selector', () => {
           now,
           ...invalidCase.options,
         });
-        assert.fail(`expected ${invalidCase.expectedCode} for invalid prime limit`);
+        assert.fail(`expected ${invalidCase.expectedCode} for invalid limit`);
       } catch (error) {
         assert.ok(error instanceof IntrospectionError);
         assert.strictEqual(error.code, invalidCase.expectedCode);

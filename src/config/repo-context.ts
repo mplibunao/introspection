@@ -15,13 +15,14 @@ import type { JsonObject, Visibility } from '../core/record-type-types.js';
 
 interface ConfigRecords {
   readonly root: string;
+  readonly list?: ConfigRecordListDefaults;
 }
 
 interface ConfigDefaults {
   readonly visibility: Visibility;
 }
 
-interface ConfigPrimeDefaults {
+interface ConfigRecordListDefaults {
   readonly default_limit?: number;
   readonly hard_limit?: number;
 }
@@ -43,7 +44,6 @@ interface IntrospectionConfig {
   readonly repo_slug: string;
   readonly records: ConfigRecords;
   readonly defaults: ConfigDefaults;
-  readonly prime?: ConfigPrimeDefaults;
   readonly policy_docs?: ReadonlyArray<PolicyDocPointer>;
 }
 
@@ -474,7 +474,7 @@ export {
 };
 export type {
   ConfigDefaults,
-  ConfigPrimeDefaults,
+  ConfigRecordListDefaults,
   ConfigRecords,
   IntrospectionConfig,
   IntrospectionVocabulary,

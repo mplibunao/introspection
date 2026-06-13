@@ -49,19 +49,15 @@ const parseLimit = (value: string | undefined): number | undefined => {
   return parsed;
 };
 
-/*
- * Listing limits still read the [prime] config block. WI-R02 renames that block
- * to [records.list]; this consumer moves with it.
- */
 const recordListLimitDefaults = (repo: RepoContext): RecordListLimitDefaults => {
   const limits: { defaultLimit?: number; hardLimit?: number } = {};
 
-  if (typeof repo.config.prime?.default_limit === 'number') {
-    limits.defaultLimit = repo.config.prime.default_limit;
+  if (typeof repo.config.records.list?.default_limit === 'number') {
+    limits.defaultLimit = repo.config.records.list.default_limit;
   }
 
-  if (typeof repo.config.prime?.hard_limit === 'number') {
-    limits.hardLimit = repo.config.prime.hard_limit;
+  if (typeof repo.config.records.list?.hard_limit === 'number') {
+    limits.hardLimit = repo.config.records.list.hard_limit;
   }
 
   return limits;

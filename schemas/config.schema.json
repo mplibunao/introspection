@@ -29,6 +29,23 @@
           "type": "string",
           "minLength": 1,
           "default": "docs/records"
+        },
+        "list": {
+          "type": "object",
+          "$comment": "JSON Schema bounds individual values; runtime validation must enforce records.list.hard_limit >= records.list.default_limit when both values are present.",
+          "properties": {
+            "default_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "hard_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -39,23 +56,6 @@
       "properties": {
         "visibility": {
           "$ref": "https://introspection.local/schemas/base-record.schema.json#/$defs/visibility"
-        }
-      },
-      "additionalProperties": false
-    },
-    "prime": {
-      "type": "object",
-      "$comment": "JSON Schema bounds individual values; runtime validation must enforce prime.hard_limit >= prime.default_limit when both values are present.",
-      "properties": {
-        "default_limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 100
-        },
-        "hard_limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 500
         }
       },
       "additionalProperties": false

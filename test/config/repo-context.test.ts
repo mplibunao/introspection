@@ -336,3 +336,59 @@ describe('repo context symlink failure modes', () => {
     });
   });
 });
+
+describe('repo context [records.list] config', () => {
+  it('accepts a valid [records.list] block and exposes its values on config.records.list', async () => {
+    const expectedDefaultLimit = 10;
+    const expectedHardLimit = 20;
+
+    await withTempRoot(async (repoRoot) => {
+      const configSource = [
+        'schema_version = 1',
+        'repo_key = "BP"',
+        'repo_slug = "backpressure"',
+        '',
+        '[records]',
+        'root = "docs/records"',
+        '',
+        '[records.list]',
+        `default_limit = ${String(expectedDefaultLimit)}`,
+        `hard_limit = ${String(expectedHardLimit)}`,
+        '',
+        '[defaults]',
+        'visibility = "local-only"',
+      ].join('\n');
+
+      await writeIntrospectionFiles(repoRoot, configSource);
+      const context = await loadRepoContext({ cwd: repoRoot });
+
+      assert.strictEqual(context.config.records.list?.default_limit, expectedDefaultLimit);
+      assert.strictEqual(context.config.records.list?.hard_limit, expectedHardLimit);
+    });
+  });
+
+  it('rejects a [prime] block with a schema violation (hard cutover — no shim)', async () => {
+    await withTempRoot(async (repoRoot) => {
+      const configSource = [
+        'schema_version = 1',
+        'repo_key = "BP"',
+        'repo_slug = "backpressure"',
+        '',
+        '[records]',
+        'root = "docs/records"',
+        '',
+        '[defaults]',
+        'visibility = "local-only"',
+        '',
+        '[prime]',
+        'default_limit = 10',
+        'hard_limit = 20',
+      ].join('\n');
+
+      await writeIntrospectionFiles(repoRoot, configSource);
+      const error = await assertRejectsWith(loadRepoContext({ cwd: repoRoot }), ConfigLoadError);
+
+      assert.strictEqual(error.code, 'config.schema_violation');
+    });
+  });
+});

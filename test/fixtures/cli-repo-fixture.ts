@@ -47,7 +47,7 @@ const buildConfigToml = (policyDocs: boolean): string => {
     '[defaults]',
     'visibility = "local-only"',
     '',
-    '[prime]',
+    '[records.list]',
     'default_limit = 1',
     'hard_limit = 2',
     '',
