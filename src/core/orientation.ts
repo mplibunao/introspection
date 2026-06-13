@@ -1,3 +1,5 @@
+import { lifecycleStatusKindFor } from './lifecycle.js';
+import { isoTimestamp } from './time.js';
 import type { LifecycleStatusKind, RecordTypeRegistry } from './record-type-types.js';
 
 type OrientationLifecycleKind = LifecycleStatusKind | 'unknown';
@@ -88,20 +90,6 @@ const nextCommands: ReadonlyArray<string> = [
 const sortedKeys = (keys: Iterable<string>): ReadonlyArray<string> =>
   [...keys].sort((left, right) => left.localeCompare(right));
 
-/*
- * Classify a status against the record type's static lifecycle metadata. Reading
- * lifecycle definitions is not validation and touches no record body.
- */
-const statusKindFor = (
-  registry: RecordTypeRegistry,
-  recordType: string,
-  status: string,
-): OrientationLifecycleKind => {
-  const definition = registry.get(recordType)?.lifecycle.statuses[status];
-
-  return definition?.kind ?? 'unknown';
-};
-
 const countByStatus = (records: ReadonlyArray<OrientationRecordInput>): Map<string, number> => {
   const counts = new Map<string, number>();
 
@@ -135,7 +123,7 @@ const statusCountsFor = (
 
   return sortedKeys(counts.keys()).map((status) => ({
     status,
-    kind: statusKindFor(registry, recordType, status),
+    kind: lifecycleStatusKindFor(registry, recordType, status),
     count: counts.get(status) ?? 0,
   }));
 };
@@ -164,7 +152,7 @@ const lifecycleCountsFor = (
   const counts = new Map<OrientationLifecycleKind, number>();
 
   for (const record of records) {
-    const kind = statusKindFor(registry, record.recordType, record.status);
+    const kind = lifecycleStatusKindFor(registry, record.recordType, record.status);
     counts.set(kind, (counts.get(kind) ?? 0) + 1);
   }
 
@@ -186,7 +174,7 @@ const vocabularyCountsFor = (
 };
 
 const buildOrientation = (options: BuildOrientationOptions): Orientation => ({
-  generatedAt: options.now.toISOString().replace(/\.\d{3}Z$/u, 'Z'),
+  generatedAt: isoTimestamp(options.now),
   totalRecordCount: options.records.length,
   unreadableRecordCount: options.failedReadCount,
   recordTypes: recordTypeCountsFor(options.registry, options.records),

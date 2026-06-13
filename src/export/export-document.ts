@@ -2,6 +2,7 @@ import type { RepoContext } from '../config/repo-context.js';
 import type { ExportDocument, ValidationContext } from '../core/record-type.js';
 import type { RecordTypeRegistry } from '../core/record-type-types.js';
 import type { StoredMarkdownRecord } from '../store/markdown-record-store.js';
+import { isoTimestamp } from '../core/time.js';
 
 interface ExportRecordDocument extends ExportDocument {
   readonly path: string;
@@ -63,8 +64,6 @@ const buildExportDocuments = ({
       path: record.relativePath,
     }))
     .sort(byStableExportOrder);
-
-const isoTimestamp = (date: Date): string => date.toISOString().replace(/\.\d{3}Z$/u, 'Z');
 
 const buildExportManifest = ({
   entries,

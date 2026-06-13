@@ -1,4 +1,6 @@
+import { lifecycleStatusKindFor } from './lifecycle.js';
 import { IntrospectionError } from './errors.js';
+import { isoTimestamp } from './time.js';
 import type {
   ParsedRecord,
   RecordListSummary,
@@ -133,16 +135,6 @@ const hasAllTags = (recordTags: ReadonlyArray<string>, filters: ReadonlyArray<st
   return filters.every((tag) => tags.has(tag));
 };
 
-const statusKind = (
-  candidate: RecordListCandidate,
-  registry: RecordTypeRegistry,
-): 'active' | 'terminal' | 'unknown' => {
-  const recordType = registry.get(candidate.record.frontmatter.record_type);
-  const status = recordType?.lifecycle.statuses[candidate.record.frontmatter.status];
-
-  return status?.kind ?? 'unknown';
-};
-
 const terminalRecordsAllowed = (filters: Required<RecordListFilters>): boolean =>
   filters.includeTerminal || filters.all || filters.statuses.length > 0;
 
@@ -177,7 +169,14 @@ const candidateMatches = (
     return false;
   }
 
-  if (!terminalRecordsAllowed(filters) && statusKind(candidate, registry) !== 'active') {
+  if (
+    !terminalRecordsAllowed(filters) &&
+    lifecycleStatusKindFor(
+      registry,
+      candidate.record.frontmatter.record_type,
+      candidate.record.frontmatter.status,
+    ) !== 'active'
+  ) {
     return false;
   }
 
@@ -322,7 +321,7 @@ const selectRecordList = (options: SelectRecordListOptions): RecordListResult =>
   const records = matchingRecords.slice(0, limit.effectiveLimit);
 
   return {
-    generatedAt: options.now.toISOString().replace(/\.\d{3}Z$/u, 'Z'),
+    generatedAt: isoTimestamp(options.now),
     filters,
     limit,
     scannedRecordCount: options.records.length,

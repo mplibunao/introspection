@@ -27,6 +27,15 @@ interface RecordSummary {
 
 const jsonIndent = 2;
 
+const repoJson = (
+  repo: RepoContext,
+): { key: string; slug: string; root: string; recordsRoot: string } => ({
+  key: repo.repoKey,
+  slug: repo.repoSlug,
+  root: repo.repoRoot,
+  recordsRoot: repo.recordsRoot,
+});
+
 const renderJson = (value: unknown): string => `${JSON.stringify(value, null, jsonIndent)}\n`;
 
 const recordSummary = (record: StoredMarkdownRecord): RecordSummary => ({
@@ -71,32 +80,10 @@ const repairJson = (result: DuplicateRepairResult): string =>
   });
 
 const recordListJson = (repo: RepoContext, selection: RecordListResult): string =>
-  renderJson({
-    ok: true,
-    list: {
-      repo: {
-        key: repo.repoKey,
-        slug: repo.repoSlug,
-        root: repo.repoRoot,
-        recordsRoot: repo.recordsRoot,
-      },
-      ...selection,
-    },
-  });
+  renderJson({ ok: true, list: { repo: repoJson(repo), ...selection } });
 
 const orientationJson = (repo: RepoContext, orientation: Orientation): string =>
-  renderJson({
-    ok: true,
-    orientation: {
-      repo: {
-        key: repo.repoKey,
-        slug: repo.repoSlug,
-        root: repo.repoRoot,
-        recordsRoot: repo.recordsRoot,
-      },
-      ...orientation,
-    },
-  });
+  renderJson({ ok: true, orientation: { repo: repoJson(repo), ...orientation } });
 
 const vocabularyJson = (vocabulary: IntrospectionVocabulary): string =>
   renderJson({ ok: true, vocabulary });

@@ -1,4 +1,5 @@
 /* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
+import { isoTimestamp } from '../core/time.js';
 import { loadRepoContext } from '../config/repo-context.js';
 import type { RepoContext, VocabularyProvenance } from '../config/repo-context.js';
 import { IntrospectionError } from '../core/errors.js';
@@ -53,8 +54,6 @@ const provenanceKinds: ReadonlyArray<VocabularyProvenance['kind']> = [
   'record',
   'seed',
 ];
-
-const isoTimestamp = (date: Date): string => date.toISOString().replace(/\.\d{3}Z$/u, 'Z');
 
 const isFlag = (arg: string | undefined): boolean => arg?.startsWith(flagPrefix) === true;
 
