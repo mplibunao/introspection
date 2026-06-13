@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function, max-statements, no-duplicate-imports, no-magic-numbers -- Record-list selector mutation tests use compact numbered fixtures to make ordering, filtering, and omitted-count expectations obvious. */
+/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { assert, describe, it } from '@effect/vitest';
 
 import { IntrospectionError } from '../../src/core/errors.js';

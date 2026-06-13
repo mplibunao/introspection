@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function, max-statements, typescript-eslint/no-unsafe-type-assertion -- CLI integration tests intentionally assert selected JSON payload fields across many command paths. */
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

@@ -1,4 +1,3 @@
-/* eslint-disable no-magic-numbers, typescript-eslint/no-unsafe-type-assertion -- CLI fixture builds test records with numeric padding and casts partial frontmatter to the full type. */
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

@@ -1,4 +1,3 @@
-/* eslint-disable no-magic-numbers, typescript-eslint/no-unsafe-type-assertion -- Export tests assert generated artifact shapes and deterministic file contents. */
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

@@ -1,4 +1,3 @@
-/* eslint-disable max-statements, no-magic-numbers -- Regression fixtures use fixed record IDs and artifact assertions to prove path and hash behavior. */
 import { createHash } from 'node:crypto';
 import { access, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';

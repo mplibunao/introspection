@@ -1,4 +1,3 @@
-/* eslint-disable no-magic-numbers -- Identity tests use specific record numbers to verify zero-padding and path construction. */
 import { assert, describe, it } from '@effect/vitest';
 
 import { createRecordIdentity } from '../../src/core/id.js';

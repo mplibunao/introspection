@@ -1,4 +1,3 @@
-/* eslint-disable no-magic-numbers, max-lines-per-function, typescript-eslint/no-unsafe-type-assertion -- Records list CLI integration tests assert JSON payload fields from in-process command output. */
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

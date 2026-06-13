@@ -1,4 +1,3 @@
-/* eslint-disable no-magic-numbers, max-statements, max-lines-per-function, typescript-eslint/no-unsafe-type-assertion -- Prime orientation CLI tests assert JSON payload fields and spy on record-type methods to pin the no-validation invariant. */
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 

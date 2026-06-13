@@ -1,4 +1,3 @@
-/* eslint-disable no-magic-numbers, max-lines-per-function -- Record candidate builder tests assert specific numeric field values and counts. The describe block intentionally exceeds the per-function line limit to keep all related builder assertions co-located. */
 import { assert, describe, it } from '@effect/vitest';
 
 import { buildRecordCandidate } from '../../src/core/record-candidate.js';

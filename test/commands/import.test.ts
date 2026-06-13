@@ -1,4 +1,4 @@
-/* eslint-disable no-duplicate-imports, no-magic-numbers, max-lines-per-function, typescript-eslint/no-unsafe-type-assertion -- Import CLI integration tests assert JSON payload fields and build manifest fixtures inline. */
+/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

@@ -1,4 +1,3 @@
-/* eslint-disable typescript-eslint/no-unsafe-type-assertion, max-lines-per-function, max-statements, no-magic-numbers -- Init CLI tests cast the parsed JSON payload to the known report shape, and scenario cases group many assertions with small literal counts. */
 import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

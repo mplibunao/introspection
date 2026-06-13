@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function, max-statements, typescript-eslint/no-unsafe-type-assertion -- Record create characterization tests assert full JSON payload shapes, raw YAML key order, and source-code guards from in-process command output. */
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 

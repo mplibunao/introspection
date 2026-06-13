@@ -39,6 +39,22 @@ export default defineConfig({
       typeCheck: true,
     },
     plugins: ['typescript', 'import', 'vitest'],
+    overrides: [
+      {
+        // Structural size/complexity ceilings are meaningless for test files.
+        // Tests are intentionally large and fixture-heavy to keep assertions co-located.
+        // Exception: `max-depth` and `max-params` stay strict — they flag real structural problems in tests too.
+        files: ['test/**', '**/*.test.ts'],
+        rules: {
+          'max-lines': 'off',
+          'max-lines-per-function': 'off',
+          'max-statements': 'off',
+          'import/max-dependencies': 'off',
+          'no-magic-numbers': 'off',
+          '@typescript-eslint/no-unsafe-type-assertion': 'off',
+        },
+      },
+    ],
     rules: {
       ...generalPreset.rules,
       '@typescript-eslint/array-type': ['error', { default: 'generic' }],

@@ -1,4 +1,3 @@
-/* eslint-disable typescript-eslint/no-unsafe-type-assertion -- CLI JSON regression asserts error payload fields. */
 import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

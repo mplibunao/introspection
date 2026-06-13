@@ -1,4 +1,3 @@
-/* eslint-disable max-lines -- Allocator, lock-reclaim, and process-concurrency coverage stay together so the race-test helpers remain local. */
 import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, utimes, writeFile } from 'node:fs/promises';
 import os from 'node:os';

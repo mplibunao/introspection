@@ -1,4 +1,3 @@
-/* eslint-disable typescript-eslint/no-unsafe-type-assertion -- Boundary tests assert CLI JSON payload fields. */
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
