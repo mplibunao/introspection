@@ -35,4 +35,15 @@ Branches (stacked for review):
   - `prompt-exports/` is NOT gitignored. Oracle plan/review exports land there untracked and a careless `git add -A` could commit them. Recommend adding `prompt-exports/` to `.gitignore`. (R03 commits staged explicit paths so nothing leaked; the consumed R03 export was deleted.)
   - `src/commands/record.ts` now suppresses oxlint `import/max-dependencies` (16 deps) with a rationale comment, because adopting the shared `core/id.ts` helper added one import. Acceptable tradeoff (shared helper over import-count), but record.ts owns create plus transition plus their helpers and may warrant a future split—your call, not done unilaterally.
 
+## WI-R02—Rename config `[prime]` → `[records.list]` (hard cutover)—DONE
+
+- **Implementation:** `engineer` against the plan's WI-R02 section. introspection (10 files): the schema drops top-level `prime` and adds `records.list` under `records` (top-level `additionalProperties:false` makes a stray `[prime]` fail—that is the hard cutover); `ConfigPrimeDefaults` → `ConfigRecordListDefaults` (plus the `src/config/index.ts` re-export); the `records.ts` consumer repointed to `config.records.list`; `record-list-selector.ts` `prime.limit.*` error codes renamed to `records.list.limit.*` in lockstep; introspection's own `.introspection/config.toml` flipped (10/50). backpressure (1 file): `.introspection/config.toml` flipped (5/20).
+- **Review gate:** 1 analysis (chat `wi-r02-review-C7A508`); clean, no findings. Confirmed the hard cutover is complete (no `[prime]` acceptance path), the runtime `hard_limit >= default_limit` enforcement is preserved, the error-code and type renames are fully consistent (no `prime.limit.*` / `ConfigPrimeDefaults` / `config.prime` stragglers), and tests cover valid `[records.list]`, `[prime]` rejection, invalid limit ordering, and command consumption.
+- **Refactor gate:** explore scouts skipped (pure 1:1 rename, no new logic). 1 analysis (chat `wi-r02-review-9A4E15`); no findings. The snake_case-to-camelCase limit mapper boundary is correct to keep.
+- **Cross-repo verify:** introspection `pnpm check` green (207 tests, rebuilds dist), then backpressure `pnpm check` green (713 tests) against the rebuilt schema via the `file:../introspection` link.
+- **Commits:** introspection `69746a7` (on `reshape/introspection-v1`) · backpressure `de2f523` (on its own `reshape/introspection-v1`, stacked on `adopt/introspection-v1`).
+- **Issues:** none open.
+- **Action items for MP:**
+  - Task #13 (`export.ts` adopting the shared `assertKnownFlags` gate) was parked to decide at R02. R02 is done and I did NOT action it: it would add `--root` and unknown-flag rejection to `export`, a behavior change rather than a rename. Still your call—say the word and I fold it in.
+
 ## WI-R12—Mutation-test reshaped surfaces (added 2026-06-13, MP request)—pending, runs late
