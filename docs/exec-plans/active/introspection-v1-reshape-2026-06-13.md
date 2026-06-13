@@ -201,6 +201,17 @@ Reshape work items use the `WI-R##` prefix to stay distinct from the bootstrap p
 **Dependencies:** none (independent of the introspection build); the executing agent reads taste-distillery's CLAUDE.md + card/baseline schemas before editing canon.
 **Size:** M
 
+### WI-R12—Mutation-test the reshaped surfaces
+
+**Goal:** Confirm the new and changed test suites actually kill mutants for the reshaped logic, not merely pass. Runs late, once the introspection build is stable. Added 2026-06-13 at MP's request.
+**Done when:**
+- introspection's mutation-testing workflow runs over the reshaped surfaces (orientation builder, record-list selector, generic `import` preflight + manifest validation, `init` scaffolder, the shared flag helpers). Surviving mutants are triaged: each is either killed with an added test or explicitly accepted with a one-line rationale.
+- A short results note records the mutation score and the surviving-mutant dispositions for the changed introspection modules.
+- backpressure: this plan touches backpressure only through config/pin changes (WI-R02 key rename, WI-R05 published pin) with no new logic, so a full mutation run is not warranted here. Confirm backpressure's existing suite still passes on the pin, and run its mutation-testing workflow only if some work item ends up changing backpressure logic.
+**Key files:** introspection mutation-testing config + skill; the reshaped `src/` modules and their tests; backpressure suite (confirmation only).
+**Dependencies:** WI-R01, WI-R02, WI-R03, WI-R08, WI-R10 (the introspection logic + tests must be committed first). Independent of the publish; ideally the last introspection item before release sign-off.
+**Size:** M
+
 ## Risks and migration notes
 
 - **Hard cutover:** `[prime]` configs and old prime flags break intentionally—land WI-R01 + WI-R02 atomically with the introspection/backpressure config updates.
