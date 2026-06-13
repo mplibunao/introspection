@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://introspection.local/schemas/import-manifest.schema.json",
+  "title": "introspection import manifest",
+  "description": "Agent-authored, normalized input for `introspection import`. introspection never parses a source tracker: the adopter's agent reads the tracker, resolves dispositions, and writes this manifest against the registered record type. The importer is pure mechanics and makes no judgment calls; record-type lifecycle and required body headings are enforced by validation, not by this schema.",
+  "type": "object",
+  "required": ["schema_version", "record_type", "id_policy", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "type": "integer", "const": 1 },
+    "record_type": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)*$",
+      "description": "Registered record-type key the entries are imported as (e.g. tech-debt)."
+    },
+    "id_policy": {
+      "enum": ["preserve", "allocate"],
+      "description": "preserve: each entry supplies its own number (legacy IDs kept). allocate: numbers are assigned sequentially after the highest existing record number for this type."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Provenance shared by every entry. tracker_path plus an entry legacy_id derive a typed tracker source ref.",
+      "properties": {
+        "tracker_path": { "type": "string", "minLength": 1 },
+        "discovered_at": { "$ref": "#/$defs/isoDateTimeString" }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "isoDateTimeString": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+      "description": "Seconds-precision UTC timestamp with a Z suffix, matching the record frontmatter contract."
+    },
+    "evidenceRef": {
+      "type": "object",
+      "required": ["kind", "ref"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["commit", "doc", "other", "plan", "record", "tracker", "url"] },
+        "ref": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "section": {
+      "type": "object",
+      "required": ["heading", "body"],
+      "additionalProperties": false,
+      "description": "One markdown body section. heading is the literal markdown heading line the agent authored; the importer renders it verbatim so validation can enforce the record type required headings.",
+      "properties": {
+        "heading": {
+          "type": "string",
+          "pattern": "^#{1,6} ",
+          "description": "Full markdown heading line, e.g. '## Problem'."
+        },
+        "body": { "type": "string", "minLength": 1 }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "required": ["rationale"],
+      "additionalProperties": false,
+      "description": "Resolution evidence for terminal statuses. The importer sets resolution.disposition equal to the entry status, so disposition is never authored separately.",
+      "properties": {
+        "rationale": { "type": "string", "minLength": 1 },
+        "resolved_at": { "$ref": "#/$defs/isoDateTimeString" },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidenceRef" }
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "required": ["title", "status", "sections"],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Required under id_policy=preserve; rejected under id_policy=allocate."
+        },
+        "legacy_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Original tracker ID, recorded in a tracker source ref and surfaced in the import report."
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Lifecycle status for the record type. Allowed values and evidence requirements are enforced by validation, not this schema."
+        },
+        "sections": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/section" }
+        },
+        "resolution": { "$ref": "#/$defs/resolution" },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidenceRef" }
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Optional non-machine vocabulary tags. Machine-derived tags (record/*, status/*, repo/*, visibility/*) are populated by the importer."
+        }
+      }
+    }
+  }
+}

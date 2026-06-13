@@ -6,6 +6,7 @@ import addFormats from 'ajv-formats';
 import baseSchema from '../../schemas/base-record.schema.json';
 import configSchema from '../../schemas/config.schema.json';
 import exportManifestSchema from '../../schemas/export-manifest.schema.json';
+import importManifestSchema from '../../schemas/import-manifest.schema.json';
 import techDebtSchema from '../../schemas/tech-debt-record.schema.json';
 import vocabularySchema from '../../schemas/vocabulary.schema.json';
 
@@ -19,6 +20,7 @@ const schemaIds = {
   base: baseSchema.$id,
   config: configSchema.$id,
   exportManifest: exportManifestSchema.$id,
+  importManifest: importManifestSchema.$id,
   techDebt: techDebtSchema.$id,
   vocabulary: vocabularySchema.$id,
 } as const;
@@ -27,6 +29,7 @@ const schemas = {
   base: baseSchema,
   config: configSchema,
   exportManifest: exportManifestSchema,
+  importManifest: importManifestSchema,
   techDebt: techDebtSchema,
   vocabulary: vocabularySchema,
 } as const;
@@ -37,6 +40,7 @@ const allSchemaKeys = [
   'base',
   'config',
   'exportManifest',
+  'importManifest',
   'techDebt',
   'vocabulary',
 ] as const satisfies ReadonlyArray<SchemaKey>;
@@ -355,6 +359,55 @@ describe('export manifest schema', () => {
           sha256: checksum,
         },
       ],
+    });
+  });
+});
+
+describe('import manifest schema', () => {
+  it('accepts a normalized agent-authored manifest', () => {
+    const validate = validatorFor('importManifest');
+
+    assertValid(validate, {
+      schema_version: schemaVersion,
+      record_type: 'tech-debt',
+      id_policy: 'preserve',
+      source: { tracker_path: 'docs/exec-plans/tech-debt-tracker.md', discovered_at: timestamp },
+      entries: [
+        {
+          number: recordNumber,
+          legacy_id: 'TD-007',
+          title: 'Future stack-neutral React preset',
+          status: 'open',
+          sections: [
+            { heading: '## Problem', body: 'The preset is React-specific.' },
+            { heading: '## Why deferred', body: 'The current phase has a smaller scope.' },
+            { heading: '## Revisit trigger', body: 'Revisit when a second framework adopts it.' },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('rejects empty entries, unknown id policies, and headings without a marker', () => {
+    const validate = validatorFor('importManifest');
+
+    assertInvalid(validate, {
+      schema_version: schemaVersion,
+      record_type: 'tech-debt',
+      id_policy: 'preserve',
+      entries: [],
+    });
+    assertInvalid(validate, {
+      schema_version: schemaVersion,
+      record_type: 'tech-debt',
+      id_policy: 'invalid-policy',
+      entries: [{ title: 'x', status: 'open', sections: [{ heading: '## Problem', body: 'y' }] }],
+    });
+    assertInvalid(validate, {
+      schema_version: schemaVersion,
+      record_type: 'tech-debt',
+      id_policy: 'preserve',
+      entries: [{ title: 'x', status: 'open', sections: [{ heading: 'no-marker', body: 'y' }] }],
     });
   });
 });

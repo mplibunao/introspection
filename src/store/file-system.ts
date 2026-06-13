@@ -154,6 +154,66 @@ const assertExistingRecordInsideRoot = async (root: string, recordPath: string):
   assertRealPathInsideRoot(rootRealPath, recordRealPath);
 };
 
+/*
+ * Resolves an existing segment's realpath and asserts it stays inside the root; returns false
+ * when the segment does not exist yet (a missing segment cannot be a symlink that escapes).
+ */
+const segmentRealPathInsideRoot = async (
+  rootRealPath: string,
+  currentPath: string,
+): Promise<boolean> => {
+  try {
+    assertRealPathInsideRoot(rootRealPath, await realpath(currentPath));
+
+    return true;
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return false;
+    }
+
+    throw error;
+  }
+};
+
+const rootRealPathOrNull = async (root: string): Promise<string | null> => {
+  try {
+    return await realpath(root);
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return null;
+    }
+
+    throw error;
+  }
+};
+
+/*
+ * Non-mutating mirror of ensureWritableParentInsideRoot for read/delete probes: walk the
+ * parent's existing segments and assert each resolves inside the root, so a symlinked segment
+ * (e.g. a status dir pointing outside) is rejected before any access or unlink instead of
+ * being silently followed. Missing segments stop the walk; an absent root is trivially safe.
+ */
+const assertParentRealPathInsideRoot = async (root: string, targetPath: string): Promise<void> => {
+  const rootRealPath = await rootRealPathOrNull(root);
+
+  if (rootRealPath === null) {
+    return;
+  }
+
+  const segments = assertInsideOrEqualRoot(root, path.dirname(targetPath))
+    .split(path.sep)
+    .filter((segment) => segment.length > 0);
+  let currentPath = root;
+
+  for (const segment of segments) {
+    currentPath = path.join(currentPath, segment);
+
+    if (!(await segmentRealPathInsideRoot(rootRealPath, currentPath))) {
+      return;
+    }
+  }
+};
+
 const readBytesForHashCheck = async (
   absolutePath: string,
   expectedHash: string,
@@ -291,6 +351,7 @@ const rootExists = async (root: string): Promise<boolean> => {
 
 export {
   assertExistingRecordInsideRoot,
+  assertParentRealPathInsideRoot,
   createFileNoClobber,
   createPathResolver,
   hashRawBytes,

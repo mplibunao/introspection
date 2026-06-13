@@ -28,6 +28,19 @@ interface DuplicateRecordIdGroup {
   readonly records: ReadonlyArray<ParsedRecord>;
 }
 
+interface RecordIdentity {
+  readonly id: string;
+  readonly number: number;
+  readonly relativePath: string;
+}
+
+interface CreateRecordIdentityOptions {
+  readonly repoKey: string;
+  readonly recordType: RecordType;
+  readonly number: number;
+  readonly status: string;
+}
+
 const idNumberWidth = 3;
 
 const regexSpecialCharacterPattern = /[.*+?^${}()|[\]\\]/gu;
@@ -126,6 +139,26 @@ const duplicateRecordIdGroups = (
     .map(([id, recordsWithId]) => ({ id, records: Object.freeze([...recordsWithId]) }));
 };
 
+/*
+ * Pure identity helper shared by the allocator and import service.
+ * Composes renderRecordId and canonicalRecordRelativePath so neither consumer
+ * has to inline the ID + path pairing independently.
+ */
+const createRecordIdentity = ({
+  repoKey,
+  recordType,
+  number,
+  status,
+}: CreateRecordIdentityOptions): RecordIdentity => {
+  const id = renderRecordId({ repoKey, typePrefix: recordType.idPrefix, number });
+
+  return {
+    id,
+    number,
+    relativePath: canonicalRecordRelativePath({ id, recordTypeKey: recordType.key, status }),
+  };
+};
+
 const recordLocation = (record: ParsedRecord): string => {
   if ('relativePath' in record && typeof record.relativePath === 'string') {
     return record.relativePath;
@@ -144,6 +177,7 @@ const duplicateRecordIdFindings = (records: ReadonlyArray<ParsedRecord>): Readon
 
 export {
   canonicalRecordRelativePath,
+  createRecordIdentity,
   duplicateRecordIdFindings,
   duplicateRecordIdGroups,
   maxRecordNumber,
@@ -153,9 +187,11 @@ export {
   renderRecordId,
 };
 export type {
+  CreateRecordIdentityOptions,
   DuplicateRecordIdGroup,
   ParsedRecordId,
   RecordIdParts,
+  RecordIdentity,
   RecordNumberScanOptions,
   RecordPathParts,
 };

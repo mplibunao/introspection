@@ -6,6 +6,7 @@ import { checkCommand } from './check.js';
 import { exportCommand } from './export.js';
 import { cliArgumentError, failure, normalizeError } from './helpers.js';
 import { idsCommand } from './ids.js';
+import { importCommand } from './import.js';
 import { primeCommand } from './prime.js';
 import { recordCommand } from './record.js';
 import { recordsCommand } from './records.js';
@@ -24,6 +25,7 @@ const commandHandlers = new Map<string, CommandHandler>([
   ['export', exportCommand],
   ['record', recordCommand],
   ['records', recordsCommand],
+  ['import', importCommand],
   ['ids', idsCommand],
   ['vocab', vocabCommand],
 ]);
@@ -35,6 +37,7 @@ Commands:
   prime                         Show repo orientation: record counts, policy docs, vocabulary.
   records list                  List bounded active records with filters.
   export                        Write disposable generated export artifacts.
+  import                        Import records from an agent-authored manifest.
   record create tech-debt       Create a tech-debt record.
   record transition             Move a record through its lifecycle.
   ids repair                    Repair one duplicate record ID.

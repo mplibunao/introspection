@@ -9,6 +9,7 @@ import type {
 } from '../core/orientation.js';
 import type { RecordListFilters, RecordListResult } from '../core/record-list-selector.js';
 import type { ExportServiceResult } from '../export/export-service.js';
+import type { ImportEntryReport, ImportReport } from '../import/import-service.js';
 import type {
   DeleteVocabularyTermResult,
   VocabularyCascadeResult,
@@ -222,6 +223,39 @@ const orientationHuman = (repo: RepoContext, orientation: Orientation): string =
   return `${lines.join(newline)}${newline}`;
 };
 
+const importOutcomeLabel = (report: ImportReport): string => {
+  if (!report.ok) {
+    return 'failed (no records written)';
+  }
+
+  if (report.written) {
+    return 'written';
+  }
+
+  return 'dry-run (no records written)';
+};
+
+const importLegacySuffix = (entry: ImportEntryReport): string => {
+  if (entry.legacyId) {
+    return ` (legacy ${entry.legacyId})`;
+  }
+
+  return '';
+};
+
+const importEntryHuman = (entry: ImportEntryReport): ReadonlyArray<string> => {
+  const head = `- ${entry.recordId} [${entry.status}] ${entry.relativePath}${importLegacySuffix(entry)}`;
+
+  return [head, ...entry.findings.map(findingLine)];
+};
+
+const importHuman = (repo: RepoContext, report: ImportReport): string => {
+  const header = `Import ${report.recordType} for ${repo.repoKey}/${repo.repoSlug} via ${report.idPolicy} id policy: ${report.entries.length} record(s); ${importOutcomeLabel(report)}.`;
+  const entries = report.entries.flatMap(importEntryHuman);
+
+  return `${[header, ...entries].join(newline)}${newline}`;
+};
+
 const vocabularyTermLine = (term: VocabularyTerm): string =>
   `- ${term.tag} [${term.status}] ${term.description}`;
 
@@ -259,6 +293,7 @@ export {
   checkHuman,
   errorHuman,
   exportHuman,
+  importHuman,
   orientationHuman,
   recordHuman,
   recordListHuman,

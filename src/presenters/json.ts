@@ -6,6 +6,8 @@ import type {
 import type { Orientation } from '../core/orientation.js';
 import type { RecordListResult } from '../core/record-list-selector.js';
 import type { ExportServiceResult } from '../export/export-service.js';
+import type { ImportEntryReport, ImportReport } from '../import/import-service.js';
+import type { JsonSchemaDocument } from '../core/record-type-types.js';
 import type {
   DeleteVocabularyTermResult,
   VocabularyCascadeResult,
@@ -82,6 +84,38 @@ const repairJson = (result: DuplicateRepairResult): string =>
 const recordListJson = (repo: RepoContext, selection: RecordListResult): string =>
   renderJson({ ok: true, list: { repo: repoJson(repo), ...selection } });
 
+const importEntryJson = (
+  entry: ImportEntryReport,
+): {
+  record_id: string;
+  number: number;
+  status: string;
+  path: string;
+  legacy_id?: string;
+  findings: ImportEntryReport['findings'];
+} => ({
+  record_id: entry.recordId,
+  number: entry.number,
+  status: entry.status,
+  path: entry.relativePath,
+  ...(entry.legacyId && { legacy_id: entry.legacyId }),
+  findings: entry.findings,
+});
+
+const importJson = (repo: RepoContext, report: ImportReport): string =>
+  renderJson({
+    ok: report.ok,
+    import: {
+      repo: repoJson(repo),
+      written: report.written,
+      record_type: report.recordType,
+      id_policy: report.idPolicy,
+      entries: report.entries.map(importEntryJson),
+    },
+  });
+
+const importSchemaJson = (schema: JsonSchemaDocument): string => renderJson(schema);
+
 const orientationJson = (repo: RepoContext, orientation: Orientation): string =>
   renderJson({ ok: true, orientation: { repo: repoJson(repo), ...orientation } });
 
@@ -112,6 +146,8 @@ export {
   checkJson,
   errorJson,
   exportJson,
+  importJson,
+  importSchemaJson,
   orientationJson,
   recordJson,
   recordListJson,

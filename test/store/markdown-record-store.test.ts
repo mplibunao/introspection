@@ -79,6 +79,13 @@ const writeRawRecord = async (
   await writeFile(absolutePath, content);
 };
 
+// Points tech-debt/open at an outside dir holding bp-td-007.md; following the symlink escapes the records root.
+const symlinkedOutsideDir = async (root: string, outsideRoot: string): Promise<void> => {
+  await mkdir(path.join(root, 'tech-debt'), { recursive: true });
+  await symlink(outsideRoot, path.join(root, 'tech-debt/open'), 'dir');
+  await writeFile(path.join(outsideRoot, 'bp-td-007.md'), 'outside file content');
+};
+
 const assertRejectsWith = async <ErrorType extends Error>(
   promise: Promise<unknown>,
   errorConstructor: new (...args: Array<never>) => ErrorType,
@@ -215,6 +222,22 @@ describe('markdown record store create and update safety', () => {
       ]);
 
       await assertCreateCollisionOutcome(root, results);
+    });
+  });
+
+  it('removes its own file when readback fails after a successful create', async () => {
+    await withTempRoot(async (root) => {
+      const store = createMarkdownRecordStore({ root });
+      // An empty title renders valid YAML but fails readback validation, so the create-then-readback cleanup path runs and a failed create leaves no orphan behind.
+      const brokenRecord = techDebtRecord({ title: '' });
+
+      await assertRejectsWith(
+        store.createRecord('tech-debt/open/bp-td-007.md', brokenRecord),
+        FrontmatterValidationError,
+      );
+
+      const entries = await readdir(path.join(root, 'tech-debt/open'));
+      assert.deepStrictEqual(entries, []);
     });
   });
 
@@ -399,6 +422,33 @@ describe('markdown frontmatter parser corpus results', () => {
 
       assert.strictEqual(successes.length, 1);
       assert.strictEqual(failures.length, 1);
+    });
+  });
+});
+
+describe('markdown record store path-safe probe and delete', () => {
+  it('refuses to probe or delete through a symlinked records-root segment', async () => {
+    await withTempRoot(async (root) => {
+      const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'introspection-outside-'));
+
+      try {
+        const store = createMarkdownRecordStore({ root });
+        await symlinkedOutsideDir(root, outsideRoot);
+        const probeError = await assertRejectsWith(
+          store.pathExists(createCollisionPath),
+          RecordStoreError,
+        );
+        const deleteError = await assertRejectsWith(
+          store.deleteRecord(createCollisionPath),
+          RecordStoreError,
+        );
+
+        assert.strictEqual(probeError.code, 'record_store.path_outside_root');
+        assert.strictEqual(deleteError.code, 'record_store.path_outside_root');
+        assert.deepStrictEqual(await readdir(outsideRoot), ['bp-td-007.md']);
+      } finally {
+        await rm(outsideRoot, { force: true, recursive: true });
+      }
     });
   });
 });

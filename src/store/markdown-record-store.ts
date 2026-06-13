@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { access, readdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import { IntrospectionError, RecordStoreError } from '../core/errors.js';
@@ -6,9 +6,11 @@ import type { ParsedRecord } from '../core/record-type-types.js';
 
 import {
   assertExistingRecordInsideRoot,
+  assertParentRealPathInsideRoot,
   createFileNoClobber,
   createPathResolver,
   hashRawBytes,
+  isMissingFileError,
   moveFileNoClobber,
   rootExists,
   updateFileAtomically,
@@ -68,6 +70,8 @@ interface MarkdownRecordStore {
   readRecord: (recordPath: string) => Promise<StoredMarkdownRecord>;
   readRecordResult: (recordPath: string) => Promise<MarkdownRecordReadResult>;
   createRecord: (relativePath: string, record: ParsedRecord) => Promise<StoredMarkdownRecord>;
+  pathExists: (recordPath: string) => Promise<boolean>;
+  deleteRecord: (recordPath: string) => Promise<void>;
   updateRecord: (
     record: StoredMarkdownRecord,
     update: MarkdownRecordUpdate,
@@ -275,6 +279,19 @@ const readRecord = async (
   recordPath: string,
 ): Promise<StoredMarkdownRecord> => readStoredRecordAtPath(root, resolvePath(recordPath));
 
+/*
+ * A successful createFileNoClobber means THIS call created the target, so if the readback
+ * then fails we delete our own file before rethrowing — a failed create must not leave an
+ * orphan. Cleanup is best-effort so the original readback error is what surfaces.
+ */
+const removeCreatedFile = async (absolutePath: string): Promise<void> => {
+  try {
+    await rm(absolutePath, { force: true });
+  } catch {
+    // Best-effort: surface the original readback failure, not a cleanup error.
+  }
+};
+
 const createRecord = async (
   root: string,
   resolvePath: PathResolver,
@@ -284,7 +301,58 @@ const createRecord = async (
   const recordPath = resolvePath(relativePath);
   await createFileNoClobber(root, recordPath.absolutePath, renderMarkdownRecord(record));
 
-  return readStoredRecordAtPath(root, recordPath);
+  try {
+    return await readStoredRecordAtPath(root, recordPath);
+  } catch (error) {
+    await removeCreatedFile(recordPath.absolutePath);
+
+    throw error;
+  }
+};
+
+/*
+ * Root-safe existence probe: resolvePath rejects any target that escapes the records root
+ * (so an untrusted, manifest-supplied status segment cannot make callers probe outside it),
+ * and only ENOENT is treated as absent — other access errors surface to the caller.
+ */
+const recordPathExists = async (
+  root: string,
+  resolvePath: PathResolver,
+  recordPath: string,
+): Promise<boolean> => {
+  const { absolutePath } = resolvePath(recordPath);
+  /*
+   * Realpath-check the parent like the write path does, so a symlinked segment cannot make
+   * this probe follow a path outside the records root.
+   */
+  await assertParentRealPathInsideRoot(root, absolutePath);
+
+  try {
+    await access(absolutePath);
+
+    return true;
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return false;
+    }
+
+    throw error;
+  }
+};
+
+/*
+ * Root-safe best-effort delete used for import rollback; force ignores an absent target. The
+ * realpath parent check matters most here because rm is destructive, so it must never follow
+ * a symlinked segment out of the records root.
+ */
+const deleteRecordFile = async (
+  root: string,
+  resolvePath: PathResolver,
+  recordPath: string,
+): Promise<void> => {
+  const { absolutePath } = resolvePath(recordPath);
+  await assertParentRealPathInsideRoot(root, absolutePath);
+  await rm(absolutePath, { force: true });
 };
 
 const updateRecord = async (
@@ -346,6 +414,8 @@ const createMarkdownRecordStore = (options: MarkdownRecordStoreOptions): Markdow
     readRecordResult: async (recordPath) => readRecordResult(root, resolvePath, recordPath),
     createRecord: async (relativePath, record) =>
       createRecord(root, resolvePath, relativePath, record),
+    pathExists: async (recordPath) => recordPathExists(root, resolvePath, recordPath),
+    deleteRecord: async (recordPath) => deleteRecordFile(root, resolvePath, recordPath),
     updateRecord: async (record, update) => updateRecord(root, record, update),
     moveRecord: async (record, targetRelativePath) =>
       moveRecord(root, resolvePath, record, targetRelativePath),
