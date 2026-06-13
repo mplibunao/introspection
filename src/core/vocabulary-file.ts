@@ -35,8 +35,12 @@ const provenanceLines = (term: VocabularyTerm): ReadonlyArray<string> => {
   const lines = [
     '[terms.provenance]',
     `${tomlArrayIndent}kind = ${quotedTomlString(term.provenance.kind)}`,
-    `${tomlArrayIndent}ref = ${quotedTomlString(term.provenance.ref)}`,
   ];
+
+  // Omit ref entirely when absent; writing `ref = undefined` is invalid TOML
+  if (term.provenance.ref) {
+    lines.push(`${tomlArrayIndent}ref = ${quotedTomlString(term.provenance.ref)}`);
+  }
 
   if (term.provenance.noted_at) {
     lines.push(`${tomlArrayIndent}noted_at = ${quotedTomlString(term.provenance.noted_at)}`);

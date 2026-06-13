@@ -231,17 +231,17 @@ const evidenceRefFromFlags = (
 };
 
 const provenanceFromFlags = (flags: Map<string, ReadonlyArray<string>>): VocabularyProvenance => {
+  const kind = parseProvenanceKind(optionalFlag(flags, 'provenance-kind') ?? 'human');
+  const ref = optionalFlag(flags, 'provenance-ref');
   const notedAt = optionalFlag(flags, 'provenance-noted-at');
-  const provenance: VocabularyProvenance = {
-    kind: parseProvenanceKind(optionalFlag(flags, 'provenance-kind') ?? 'human'),
-    ref: requiredFlag(flags, 'provenance-ref'),
+
+  // Build provenance with only the fields that were explicitly supplied;
+  // --provenance-ref is optional when the term has no traceable source to cite.
+  return {
+    kind,
+    ...(ref && { ref }),
+    ...(notedAt && { noted_at: notedAt }),
   };
-
-  if (notedAt) {
-    return { ...provenance, noted_at: notedAt };
-  }
-
-  return provenance;
 };
 
 const loadOptions = (context: CliCommandContext): Parameters<typeof loadRepoContext>[0] => {

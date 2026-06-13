@@ -258,6 +258,34 @@ describe('CLI command shell', () => {
     });
   });
 
+  it('creates a record without --source-ref, leaving source with no refs key', async () => {
+    await withTempRepo(async (root) => {
+      const result = await run(root, [
+        'record',
+        'create',
+        'tech-debt',
+        '--title',
+        'Organically discovered debt',
+        '--problem',
+        'Discovered without a traceable source.',
+        '--why-deferred',
+        'No prior tracker exists to cite.',
+        '--revisit-trigger',
+        'Revisit when the owning area changes.',
+        '--json',
+      ]);
+
+      assert.strictEqual(result.exitCode, 0);
+
+      // RecordJson returns a summary only; read the written file to verify source shape
+      const recordPath = path.join(root, 'docs/records/tech-debt/open/bp-td-001.md');
+      const content = await readFile(recordPath, 'utf8');
+
+      assert.match(content, /discovered_at:/u);
+      assert.notMatch(content, /refs:/u);
+    });
+  });
+
   it('rejects invalid raw tags during record creation before writing a file', async () => {
     const cases = [
       { tag: 'topic/missing', finding: 'tag.vocabulary.unknown' },
@@ -338,6 +366,30 @@ describe('CLI command shell', () => {
       assert.strictEqual(result.exitCode, 1);
       assert.strictEqual(errorCodeFromStdout(result.stdout), 'record.transition.target_exists');
       assert.strictEqual(await readFile(sourcePath, 'utf8'), before);
+    });
+  });
+
+  it('proposes a vocabulary term without --provenance-ref and succeeds', async () => {
+    await withTempRepo(async (root) => {
+      const result = await run(root, [
+        'vocab',
+        'propose',
+        'topic/no-ref',
+        '--description',
+        'Organically discovered tag with no traceable source.',
+        '--json',
+      ]);
+
+      assert.strictEqual(result.exitCode, 0);
+      const payload = parseJsonStdout(result.stdout) as {
+        vocabulary: { terms: ReadonlyArray<{ tag: string; provenance: Record<string, unknown> }> };
+      };
+      const proposed = payload.vocabulary.terms.find(
+        (candidate) => candidate.tag === 'topic/no-ref',
+      );
+
+      assert.ok(proposed);
+      assert.ok(!('ref' in (proposed?.provenance ?? {})));
     });
   });
 

@@ -49,7 +49,8 @@ interface IntrospectionConfig {
 
 interface VocabularyProvenance {
   readonly kind: 'human' | 'import' | 'other' | 'plan' | 'record' | 'seed';
-  readonly ref: string;
+  // Ref is optional: terms established without a traceable source need no citation
+  readonly ref?: string;
   readonly noted_at?: string;
 }
 

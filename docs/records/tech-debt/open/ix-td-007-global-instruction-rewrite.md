@@ -19,11 +19,6 @@ tags:
   - timeframe/deferred-behind-v1
 source:
   discovered_at: "2026-06-01T00:00:00Z"
-  refs:
-    - kind: tracker
-      ref: docs/exec-plans/tech-debt-tracker.md
-      note: "Retired tracker stub; migrated record body now owns the original entry content. Original legacy ID: TD-007."
-      label: Retired pre-planning tracker stub
 ---
 Global-instruction rewrite.
 
@@ -37,4 +32,4 @@ The replacement should preserve the invariant that accepted unresolved gaps get 
 
 ## Revisit trigger
 
-Revisit when the backpressure dogfood gate passes. WI-18 owns that rewrite; WI-17 only migrates this record.
+Revisit when the backpressure dogfood gate passes. Handle the global-instruction rewrite as its own follow-up, separate from this record's migration.

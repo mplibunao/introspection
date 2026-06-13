@@ -19,11 +19,6 @@ tags:
   - timeframe/roadmap-post-v1
 source:
   discovered_at: "2026-06-01T00:00:00Z"
-  refs:
-    - kind: tracker
-      ref: docs/exec-plans/tech-debt-tracker.md
-      note: "Retired tracker stub; migrated record body now owns the original entry content. Original legacy ID: TD-011."
-      label: Retired pre-planning tracker stub
 ---
 Cross-repo aggregation and portfolio dashboard.
 

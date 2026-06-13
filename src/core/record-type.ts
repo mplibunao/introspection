@@ -49,7 +49,8 @@ interface Resolution extends JsonObject {
 
 interface SourceBlock extends JsonObject {
   readonly discovered_at: string;
-  readonly refs: ReadonlyArray<EvidenceRef>;
+  // Refs is optional: organically-discovered debt has nothing real to cite
+  readonly refs?: ReadonlyArray<EvidenceRef>;
 }
 
 interface BaseRecordFrontmatter extends JsonObject {

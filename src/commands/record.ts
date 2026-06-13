@@ -4,7 +4,13 @@ import { access } from 'node:fs/promises';
 import type { RepoContext } from '../config/repo-context.js';
 import { IntrospectionError } from '../core/errors.js';
 import { validateTransition } from '../core/lifecycle.js';
-import type { EvidenceRef, Finding, ParsedRecord, Resolution } from '../core/record-type-types.js';
+import type {
+  EvidenceRef,
+  Finding,
+  ParsedRecord,
+  Resolution,
+  SourceBlock,
+} from '../core/record-type-types.js';
 import { checkRecordResults } from '../core/validation.js';
 import { recordHuman, transitionHuman } from '../presenters/human.js';
 import { recordJson, transitionJson } from '../presenters/json.js';
@@ -33,7 +39,7 @@ import {
 import type { CliCommandContext, CommandHandler, CommandOutcome } from './types.js';
 
 const recordCreateUsage =
-  'introspection record create tech-debt --title <title> --problem <text> --why-deferred <text> --revisit-trigger <text> --source-ref <ref> [--json]';
+  'introspection record create tech-debt --title <title> --problem <text> --why-deferred <text> --revisit-trigger <text> [--source-ref <ref>] [--json]';
 const recordTransitionUsage =
   'introspection record transition <record-path> <status> --rationale <text> [--evidence-ref <ref>] [--json]';
 const transitionArgumentCount = 2;
@@ -72,10 +78,29 @@ const techDebtBody = (flags: Map<string, ReadonlyArray<string>>): string => {
   return `${sections.map(([heading, text]) => `${heading}\n\n${text}`).join('\n\n')}\n`;
 };
 
-const sourceRef = (flags: Map<string, ReadonlyArray<string>>): EvidenceRef => ({
-  kind: parseEvidenceRefKind(optionalFlag(flags, 'source-kind') ?? 'other'),
-  ref: requiredFlag(flags, 'source-ref'),
-});
+const buildSource = (now: string, ref: EvidenceRef | undefined): SourceBlock => {
+  if (ref) {
+    return { discovered_at: now, refs: [ref] };
+  }
+
+  return { discovered_at: now };
+};
+
+// Returns undefined when --source-ref is not provided; --source-kind is only
+// Meaningful alongside --source-ref and is ignored when the ref is absent.
+const optionalSourceRef = (flags: Map<string, ReadonlyArray<string>>): EvidenceRef | undefined => {
+  const ref = optionalFlag(flags, 'source-ref');
+
+  if (!ref) {
+    // eslint rule no-undefined bans the undefined identifier; implicit return
+    return;
+  }
+
+  return {
+    kind: parseEvidenceRefKind(optionalFlag(flags, 'source-kind') ?? 'other'),
+    ref,
+  };
+};
 
 const candidateFindings = (repo: RepoContext, record: ParsedRecord): ReadonlyArray<Finding> =>
   checkRecordResults([{ ok: true, record }], recordTypeRegistry, validationContextFor(repo))
@@ -119,10 +144,7 @@ const techDebtFrontmatter = (
     `visibility/${context.defaultVisibility}`,
     ...flagValues(flags, 'tag'),
   ]),
-  source: {
-    discovered_at: now,
-    refs: [sourceRef(flags)],
-  },
+  source: buildSource(now, optionalSourceRef(flags)),
 });
 
 const makeTechDebtRecord =

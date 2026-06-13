@@ -137,7 +137,9 @@ const rewriteSourceReferenceFields = (
 
   return {
     ...source,
-    refs: rewriteEvidenceRefs(source.refs, refs) ?? [],
+    // Refs is optional; use optionalField so an absent refs stays absent
+    // Rather than becoming an empty array that would fail minItems: 1
+    ...optionalField('refs', rewriteEvidenceRefs(source.refs, refs)),
   };
 };
 

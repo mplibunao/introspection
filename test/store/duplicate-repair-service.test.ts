@@ -224,12 +224,12 @@ const assertRepairStructuredRefs = ({
   repaired,
 }: DuplicateRepairObservation): void => {
   assert.strictEqual(originalDuplicate.frontmatter.id, repairOldId);
-  assert.strictEqual(repaired.frontmatter.source?.refs[0]?.ref, 'BP-TD-008');
+  assert.strictEqual(repaired.frontmatter.source?.refs?.[0]?.ref, 'BP-TD-008');
   assert.strictEqual(
     repaired.frontmatter.conversion_targets?.[0]?.ref,
     'tech-debt/open/bp-td-008.md',
   );
-  assert.strictEqual(referrer.frontmatter.source?.refs[0]?.ref, 'BP-TD-008');
+  assert.strictEqual(referrer.frontmatter.source?.refs?.[0]?.ref, 'BP-TD-008');
   assert.strictEqual(
     referrer.frontmatter.conversion_targets?.[0]?.ref,
     'tech-debt/open/bp-td-008.md',
@@ -317,7 +317,7 @@ const registerConflictSafetyTests = (): void => {
       const unchangedDuplicate = await store.readRecord(repairOldPath);
       const unchangedReferrer = await store.readRecord(repairReferrerPath);
       assert.strictEqual(unchangedDuplicate.frontmatter.id, repairOldId);
-      assert.strictEqual(unchangedReferrer.frontmatter.source?.refs[0]?.ref, repairOldId);
+      assert.strictEqual(unchangedReferrer.frontmatter.source?.refs?.[0]?.ref, repairOldId);
     });
   });
 
@@ -360,8 +360,8 @@ const assertPartialRepairFailureState = async (store: MarkdownRecordStore): Prom
   const original = await store.readRecord(repairOldPath);
 
   assert.strictEqual(repaired.frontmatter.id, 'BP-TD-008');
-  assert.strictEqual(firstReferrer.frontmatter.source?.refs[0]?.ref, 'BP-TD-008');
-  assert.strictEqual(secondReferrer.frontmatter.source?.refs[0]?.ref, repairOldId);
+  assert.strictEqual(firstReferrer.frontmatter.source?.refs?.[0]?.ref, 'BP-TD-008');
+  assert.strictEqual(secondReferrer.frontmatter.source?.refs?.[0]?.ref, repairOldId);
   assert.strictEqual(original.frontmatter.id, repairOldId);
 };
 

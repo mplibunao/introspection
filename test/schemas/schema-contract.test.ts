@@ -159,6 +159,24 @@ describe('record schemas', () => {
     assertInvalid(techDebtValidate, techDebtFixture({ source: [] }));
     assertInvalid(techDebtValidate, techDebtFixture({ tags: ['Record/Tech-Debt'] }));
   });
+
+  it('accepts source without refs — organically-discovered debt has nothing to cite', () => {
+    const baseValidate = validatorFor('base');
+    const techDebtValidate = validatorFor('techDebt');
+    const noRefsFixture = techDebtFixture({ source: { discovered_at: timestamp } });
+
+    assertValid(baseValidate, noRefsFixture);
+    assertValid(techDebtValidate, noRefsFixture);
+  });
+
+  it('rejects source.refs when present but empty (minItems: 1 still enforced)', () => {
+    const techDebtValidate = validatorFor('techDebt');
+
+    assertInvalid(
+      techDebtValidate,
+      techDebtFixture({ source: { discovered_at: timestamp, refs: [] } }),
+    );
+  });
 });
 
 describe('tech-debt schema boundaries', () => {
@@ -286,6 +304,25 @@ describe('vocabulary schema', () => {
           provenance: {
             kind: 'plan',
             ref: 'docs/design-input/introspection-seed-2026-06-01.md',
+            noted_at: timestamp,
+          },
+        },
+      ],
+    });
+  });
+
+  it('accepts vocabulary provenance without ref — terms without a traceable source need no citation', () => {
+    const validate = validatorFor('vocabulary');
+
+    assertValid(validate, {
+      schema_version: schemaVersion,
+      terms: [
+        {
+          tag: 'owner/mp',
+          status: 'approved',
+          description: 'Human-managed owner tag with no traceable source.',
+          provenance: {
+            kind: 'human',
             noted_at: timestamp,
           },
         },

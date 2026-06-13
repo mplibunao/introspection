@@ -49,7 +49,7 @@
           },
           "provenance": {
             "type": "object",
-            "required": ["kind", "ref"],
+            "required": ["kind"],
             "properties": {
               "kind": {
                 "type": "string",

@@ -120,7 +120,7 @@
     },
     "source": {
       "type": "object",
-      "required": ["discovered_at", "refs"],
+      "required": ["discovered_at"],
       "properties": {
         "discovered_at": {
           "$ref": "#/$defs/isoDateTimeString"

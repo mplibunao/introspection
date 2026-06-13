@@ -42,7 +42,7 @@ import type { CommandHandler, CommandOutcome, CommandRequest } from './types.js'
 const vocabUsage = [
   'introspection vocab list [--status <approved|provisional|rejected>] [--json]',
   'introspection vocab usage [tag ...] [--json]',
-  'introspection vocab propose <tag> --description <text> --provenance-ref <ref> [--json]',
+  'introspection vocab propose <tag> --description <text> [--provenance-ref <ref>] [--json]',
   'introspection vocab approve <tag> [--json]',
   'introspection vocab reject <tag> [--json]',
   'introspection vocab rename <from-tag> <to-tag> [--json]',
