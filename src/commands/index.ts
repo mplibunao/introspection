@@ -7,6 +7,7 @@ import { exportCommand } from './export.js';
 import { cliArgumentError, failure, normalizeError } from './helpers.js';
 import { idsCommand } from './ids.js';
 import { importCommand } from './import.js';
+import { initCommand } from './init.js';
 import { primeCommand } from './prime.js';
 import { recordCommand } from './record.js';
 import { recordsCommand } from './records.js';
@@ -20,6 +21,7 @@ import type {
 import { vocabCommand } from './vocab.js';
 
 const commandHandlers = new Map<string, CommandHandler>([
+  ['init', initCommand],
   ['check', checkCommand],
   ['prime', primeCommand],
   ['export', exportCommand],
@@ -33,6 +35,7 @@ const commandHandlers = new Map<string, CommandHandler>([
 const helpText = `introspection ${packageVersion}
 
 Commands:
+  init                          Scaffold introspection adoption in a repo.
   check                         Validate records.
   prime                         Show repo orientation: record counts, policy docs, vocabulary.
   records list                  List bounded active records with filters.

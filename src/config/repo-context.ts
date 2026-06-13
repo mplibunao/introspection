@@ -1,5 +1,4 @@
-import { constants as fsConstants } from 'node:fs';
-import { access, readFile, realpath, stat } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { ValidateFunction } from 'ajv';
@@ -11,6 +10,11 @@ import baseRecordSchema from '../../schemas/base-record.schema.json';
 import configSchema from '../../schemas/config.schema.json';
 import vocabularySchema from '../../schemas/vocabulary.schema.json';
 import { IntrospectionError } from '../core/errors.js';
+import {
+  isMissingPathError,
+  pathExists,
+  resolveSafeRepoPath as resolveSafeRepoPathWithErrors,
+} from '../core/repo-path-safety.js';
 import type { JsonObject, Visibility } from '../core/record-type-types.js';
 
 interface ConfigRecords {
@@ -100,9 +104,6 @@ class ConfigLoadError extends IntrospectionError {
 const isObject = (value: unknown): value is JsonObject =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const isMissingPathError = (error: unknown): boolean =>
-  typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
-
 const makeAjv = (): Ajv2020 => {
   const ajv = new Ajv2020({ allErrors: true, strict: false });
   addFormats(ajv);
@@ -144,20 +145,6 @@ const existingDirectoryFor = async (startPath: string): Promise<string> => {
   } catch (error) {
     if (isMissingPathError(error)) {
       return absoluteStartPath;
-    }
-
-    throw error;
-  }
-};
-
-const pathExists = async (candidatePath: string): Promise<boolean> => {
-  try {
-    await access(candidatePath, fsConstants.F_OK);
-
-    return true;
-  } catch (error) {
-    if (isMissingPathError(error)) {
-      return false;
     }
 
     throw error;
@@ -325,12 +312,6 @@ const loadVocabularyFile = async (vocabularyPath: string): Promise<Introspection
   return decodedVocabulary;
 };
 
-const relativePathIsInsideOrEqualRoot = (relativePath: string): boolean =>
-  relativePath.length === 0 ||
-  (!relativePath.startsWith(`..${path.sep}`) &&
-    relativePath !== '..' &&
-    !path.isAbsolute(relativePath));
-
 const pathOutsideRepoRootError = (
   repoRoot: string,
   configuredPath: string,
@@ -350,72 +331,18 @@ const absoluteRepoConfigPathError = (configuredPath: string, fieldName: string):
     { fieldName, path: configuredPath },
   );
 
-const resolveRelativeUnderRepoRoot = (
-  repoRoot: string,
-  configuredPath: string,
-  fieldName: string,
-): string => {
-  if (path.isAbsolute(configuredPath)) {
-    throw absoluteRepoConfigPathError(configuredPath, fieldName);
-  }
-
-  const absolutePath = path.resolve(repoRoot, configuredPath);
-  const relativePath = path.relative(repoRoot, absolutePath);
-
-  if (!relativePathIsInsideOrEqualRoot(relativePath)) {
-    throw pathOutsideRepoRootError(repoRoot, configuredPath, fieldName);
-  }
-
-  return absolutePath;
-};
-
-const nearestExistingAncestor = async (absolutePath: string): Promise<string> => {
-  let candidatePath = absolutePath;
-
-  while (!(await pathExists(candidatePath))) {
-    const parent = path.dirname(candidatePath);
-
-    if (parent === candidatePath) {
-      return candidatePath;
-    }
-
-    candidatePath = parent;
-  }
-
-  return candidatePath;
-};
-
-const assertRealPathInsideRepoRoot = async (
-  repoRoot: string,
-  configuredPath: string,
-  fieldName: string,
-  absolutePath: string,
-): Promise<void> => {
-  const repoRootRealPath = await realpath(repoRoot);
-  const existingAncestor = await nearestExistingAncestor(absolutePath);
-  const existingAncestorRealPath = await realpath(existingAncestor);
-  const relativeRealPath = path.relative(repoRootRealPath, existingAncestorRealPath);
-
-  if (!relativePathIsInsideOrEqualRoot(relativeRealPath)) {
-    throw pathOutsideRepoRootError(repoRoot, configuredPath, fieldName, {
-      existingAncestor,
-      existingAncestorRealPath,
-      repoRootRealPath,
-    });
-  }
+// Bind the shared safe-path policy to repo-context's config.* error namespace.
+const configSafePathErrors = {
+  absolute: absoluteRepoConfigPathError,
+  outsideRoot: pathOutsideRepoRootError,
 };
 
 const resolveSafeRepoPath = async (
   repoRoot: string,
   configuredPath: string,
   fieldName: string,
-): Promise<string> => {
-  const absolutePath = resolveRelativeUnderRepoRoot(repoRoot, configuredPath, fieldName);
-  // The lexical check blocks obvious `../` escapes. The realpath check blocks symlinked targets or parent segments from handing downstream services a path outside the repo.
-  await assertRealPathInsideRepoRoot(repoRoot, configuredPath, fieldName, absolutePath);
-
-  return absolutePath;
-};
+): Promise<string> =>
+  resolveSafeRepoPathWithErrors(repoRoot, configuredPath, fieldName, configSafePathErrors);
 
 const resolveRecordsRoot = async (repoRoot: string, configuredPath: string): Promise<string> =>
   resolveSafeRepoPath(repoRoot, configuredPath, 'records.root');

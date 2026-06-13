@@ -3,6 +3,7 @@ import type {
   RepoContext,
   VocabularyTerm,
 } from '../config/repo-context.js';
+import type { InitReport } from '../core/init-scaffold.js';
 import type { Orientation } from '../core/orientation.js';
 import type { RecordListResult } from '../core/record-list-selector.js';
 import type { ExportServiceResult } from '../export/export-service.js';
@@ -142,12 +143,15 @@ const vocabularyCascadeJson = (result: VocabularyCascadeResult): string =>
 const vocabularyDeleteJson = (result: DeleteVocabularyTermResult): string =>
   renderJson({ ok: true, deletedTag: result.deletedTag, vocabulary: result.vocabulary });
 
+const initJson = (report: InitReport): string => renderJson({ ok: true, init: report });
+
 export {
   checkJson,
   errorJson,
   exportJson,
   importJson,
   importSchemaJson,
+  initJson,
   orientationJson,
   recordJson,
   recordListJson,

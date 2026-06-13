@@ -18,6 +18,13 @@ import type {
 import type { DuplicateRepairResult } from '../store/duplicate-repair-service.js';
 import type { StoredMarkdownRecord } from '../store/markdown-record-store.js';
 
+import type { ImportLineStatus, ImportRole, InitImportReport } from '../core/init-import-line.js';
+import type {
+  ConfigArtifactStatus,
+  InitReport,
+  RouterArtifactStatus,
+} from '../core/init-scaffold.js';
+
 import type { CliErrorPayload } from '../commands/types.js';
 
 const newline = '\n';
@@ -289,11 +296,98 @@ const vocabularyUsageHuman = (usage: ReadonlyArray<VocabularyUsageEntry>): strin
 const vocabularyDeleteHuman = (result: DeleteVocabularyTermResult): string =>
   line(`Deleted unused vocabulary term ${result.deletedTag}.`);
 
+// Record lookups keep the status copy exhaustive over each status union without a switch default.
+const artifactStatusLabels: Record<ConfigArtifactStatus | RouterArtifactStatus, string> = {
+  created: 'created',
+  preserved: 'preserved (left unchanged)',
+  generated: 'generated',
+  present: 'present',
+  absent: 'absent',
+};
+
+const importStatusLabels: Record<ImportLineStatus, string> = {
+  added: 'import line added',
+  created: 'created with import line',
+  present: 'import line already present',
+  absent: 'no import line',
+};
+
+const importRoleFileNames: Record<ImportRole, string> = {
+  claude: 'CLAUDE.md',
+  agents: 'AGENTS.md',
+};
+
+// A shared file lists both roles so it is obvious init patched the symlinked pair once.
+const importLabel = (report: InitImportReport): string => {
+  if (report.sharedFile) {
+    return `${report.roles.map((role) => importRoleFileNames[role]).join(' + ')} (same file: ${report.path})`;
+  }
+
+  return report.path;
+};
+
+const initHeader = (report: InitReport): string => {
+  if (report.mode === 'write') {
+    return 'introspection init: repository scaffolded.';
+  }
+
+  return 'introspection init: repository state.';
+};
+
+// Only render identity lines that are present: a preserved config carries no resolved values, so it would otherwise show blank lines.
+const initConfigValueLines = (report: InitReport): ReadonlyArray<string> => {
+  const entries = [
+    report.repoKey && `repo_key: ${report.repoKey}`,
+    report.repoSlug && `repo_slug: ${report.repoSlug}`,
+    report.recordsRoot && `records root: ${report.recordsRoot}`,
+  ].filter((entry): entry is string => typeof entry === 'string');
+
+  if (entries.length === 0) {
+    return [];
+  }
+
+  return ['', ...entries];
+};
+
+const initArtifactLine = (
+  artifactPath: string,
+  status: ConfigArtifactStatus | RouterArtifactStatus,
+): string => `- ${artifactPath}: ${artifactStatusLabels[status]}`;
+
+const initFooterLines = (report: InitReport): ReadonlyArray<string> => {
+  if (report.mode === 'write') {
+    return ['', 'Run `introspection prime` to load record context.'];
+  }
+
+  return [];
+};
+
+const initHuman = (report: InitReport): string => {
+  const artifactLines = [
+    initArtifactLine(report.config.path, report.config.status),
+    initArtifactLine(report.vocabulary.path, report.vocabulary.status),
+    initArtifactLine(report.router.path, report.router.status),
+    ...report.imports.map(
+      (entry) => `- ${importLabel(entry)}: ${importStatusLabels[entry.status]}`,
+    ),
+  ];
+  const lines = [
+    initHeader(report),
+    ...initConfigValueLines(report),
+    '',
+    ...artifactLines,
+    ...initFooterLines(report),
+  ];
+
+  return `${lines.join(newline)}${newline}`;
+};
+
 export {
   checkHuman,
   errorHuman,
   exportHuman,
   importHuman,
+  initHuman,
   orientationHuman,
   recordHuman,
   recordListHuman,
