@@ -43,7 +43,7 @@ const techDebtRecord = (
     '## Problem',
     'The validation engine needs a realistic tech-debt-shaped record.',
     '## Why deferred',
-    'This fixture supports WI-06 service tests.',
+    'This fixture supports validation service tests.',
     '## Revisit trigger',
     'Revisit when validation behavior changes.',
   ].join('\n\n'),
@@ -101,7 +101,7 @@ const checkSingleRecord = async (
   return checkRecords({ context, registry: recordTypeRegistry, store });
 };
 
-describe('WI-06 check service corpus behavior', () => {
+describe('check service corpus behavior', () => {
   it('marks a clean corpus ok with no findings', async () => {
     await withTempRoot(async (root) => {
       const report = await checkSingleRecord(root, techDebtRecord());
@@ -161,7 +161,7 @@ describe('WI-06 check service corpus behavior', () => {
   });
 });
 
-describe('WI-06 schema, link, and version findings', () => {
+describe('schema, link, and version findings', () => {
   it('emits an unsupported record-type finding before record-type schema validation', async () => {
     await withTempRoot(async (root) => {
       const report = await checkSingleRecord(root, techDebtRecord({ record_type: 'unknown-type' }));
@@ -218,7 +218,7 @@ describe('WI-06 schema, link, and version findings', () => {
   });
 });
 
-describe('WI-06 schema link findings', () => {
+describe('schema link findings', () => {
   it('uses JSON Schema to reject malformed evidence link shape', async () => {
     await withTempRoot(async (root) => {
       const store = createMarkdownRecordStore({ root });
@@ -265,7 +265,7 @@ describe('WI-06 schema link findings', () => {
   });
 });
 
-describe('WI-06 ID and repo invariants', () => {
+describe('ID and repo invariants', () => {
   it('reports repo-key, ID-shape, and number mismatches with stable finding paths', async () => {
     await withTempRoot(async (root) => {
       const store = createMarkdownRecordStore({ root });
@@ -307,7 +307,7 @@ describe('WI-06 ID and repo invariants', () => {
   });
 });
 
-describe('WI-06 machine-derived tag invariants', () => {
+describe('machine-derived tag invariants', () => {
   it('fails when machine-derived tags are missing', async () => {
     await withTempRoot(async (root) => {
       const report = await checkSingleRecord(
@@ -372,7 +372,7 @@ describe('WI-06 machine-derived tag invariants', () => {
   });
 });
 
-describe('WI-06 machine-derived repo and context invariants', () => {
+describe('machine-derived repo and context invariants', () => {
   it('fails when repo and visibility machine tags are stale or missing', async () => {
     await withTempRoot(async (root) => {
       const report = await checkSingleRecord(

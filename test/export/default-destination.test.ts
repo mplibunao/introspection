@@ -25,7 +25,7 @@ const term = (tag: string): VocabularyTerm => ({
   description: `Vocabulary term ${tag}.`,
   provenance: {
     kind: 'plan',
-    ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-11',
+    ref: 'docs/design-input/introspection-seed-2026-06-01.md',
     noted_at: timestamp,
   },
 });
@@ -198,7 +198,7 @@ const assertArtifactTargetsUntouched = async (outsideRoot: string): Promise<void
   );
 };
 
-describe('WI-11 default export destination safety', () => {
+describe('default export destination safety', () => {
   it('rejects generated-root records before default cleanup and preserves source files', async () => {
     await withGeneratedRecordsRepo(async (root, recordPath) => {
       const before = await readFile(recordPath, 'utf8');

@@ -135,7 +135,7 @@ const requiredTechDebtHeadings = (): Array<string> => {
   return headings;
 };
 
-describe('WI-02 schema self-validation', () => {
+describe('schema self-validation', () => {
   it('validates every schema document against the JSON Schema meta-schema', () => {
     const ajv = makeAjv();
 
@@ -149,7 +149,7 @@ describe('WI-02 schema self-validation', () => {
   });
 });
 
-describe('WI-02 record schemas', () => {
+describe('record schemas', () => {
   it('validates base and tech-debt frontmatter fixtures', () => {
     const baseValidate = validatorFor('base');
     const techDebtValidate = validatorFor('techDebt');
@@ -161,7 +161,7 @@ describe('WI-02 record schemas', () => {
   });
 });
 
-describe('WI-02 tech-debt schema boundaries', () => {
+describe('tech-debt schema boundaries', () => {
   it('rejects IDs and keys outside the tech-debt contract', () => {
     const validate = validatorFor('techDebt');
 
@@ -197,7 +197,7 @@ describe('WI-02 tech-debt schema boundaries', () => {
   });
 });
 
-describe('WI-02 tech-debt markdown heading contract', () => {
+describe('tech-debt markdown heading contract', () => {
   it('declares the tech-debt markdown body heading contract', () => {
     const validBody = [
       '## Problem',
@@ -221,7 +221,7 @@ describe('WI-02 tech-debt markdown heading contract', () => {
   });
 });
 
-describe('WI-02 config schema', () => {
+describe('config schema', () => {
   it('validates decoded config TOML fixtures', () => {
     const validate = validatorFor('config');
 
@@ -268,7 +268,7 @@ describe('WI-02 config schema', () => {
   });
 });
 
-describe('WI-02 vocabulary schema', () => {
+describe('vocabulary schema', () => {
   it('documents tag-level uniqueness as a future validator contract', () => {
     assert.deepStrictEqual(vocabularySchema.properties.terms['x-unique_by'], ['tag']);
   });
@@ -285,7 +285,7 @@ describe('WI-02 vocabulary schema', () => {
           description: 'Records for accepted technical debt deferrals.',
           provenance: {
             kind: 'plan',
-            ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md',
+            ref: 'docs/design-input/introspection-seed-2026-06-01.md',
             noted_at: timestamp,
           },
         },
@@ -294,7 +294,7 @@ describe('WI-02 vocabulary schema', () => {
   });
 });
 
-describe('WI-02 export manifest schema', () => {
+describe('export manifest schema', () => {
   it('validates generated export manifest fixtures', () => {
     const validate = validatorFor('exportManifest');
 

@@ -67,7 +67,7 @@ const techDebtRecord = (
     '## Why deferred',
     'The current phase only needs the record contract.',
     '## Revisit trigger',
-    'Revisit when the owning work item starts.',
+    'Revisit when the owning feature area changes.',
   ].join('\n\n'),
 });
 
@@ -99,7 +99,7 @@ const resolution = (disposition: ConversionFixtureFrontmatter['status']): Resolu
   rationale: 'The conversion fixture reached a terminal status.',
 });
 
-describe('WI-03 static record type registry', () => {
+describe('static record type registry', () => {
   it('registers the tech-debt placeholder in the package registry', () => {
     const typedTechDebt: RecordType<TechDebtFrontmatter> = techDebtRecordType;
 
@@ -142,7 +142,7 @@ describe('WI-03 static record type registry', () => {
   });
 });
 
-describe('WI-03 tech-debt record type contract', () => {
+describe('tech-debt record type contract', () => {
   it('models lifecycle, derived tags, prime summary, and export projection', () => {
     const record = techDebtRecord();
 
@@ -179,7 +179,7 @@ describe('WI-03 tech-debt record type contract', () => {
   });
 });
 
-describe('WI-03 conversion fixture contract', () => {
+describe('conversion fixture contract', () => {
   it('is registered in a test-only registry', () => {
     const registry = createRecordTypeRegistry([techDebtRecordType, conversionFixtureRecordType]);
 
@@ -240,7 +240,7 @@ describe('WI-03 conversion fixture contract', () => {
   });
 });
 
-describe('WI-20 record type lifecycle mutation coverage', () => {
+describe('record type lifecycle mutation coverage', () => {
   it('rejects unsupported transition evidence by source and target status', () => {
     const converted = conversionRecord({
       status: 'converted',
@@ -314,7 +314,7 @@ describe('WI-20 record type lifecycle mutation coverage', () => {
   });
 });
 
-describe('WI-03 conversion fixture terminal status contract', () => {
+describe('conversion fixture terminal status contract', () => {
   it('requires resolution for every terminal conversion status', () => {
     const record = conversionRecord({ status: 'rejected' });
 

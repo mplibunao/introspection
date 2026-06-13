@@ -27,7 +27,7 @@ const term = (
     description: `Vocabulary term ${tag}.`,
     provenance: {
       kind: 'plan',
-      ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-09',
+      ref: 'docs/design-input/introspection-seed-2026-06-01.md',
       noted_at: timestamp,
     },
   };
@@ -116,9 +116,9 @@ const createRecordArgs = (
   '--why-deferred',
   'The CLI shell is being tested in process.',
   '--revisit-trigger',
-  'Revisit when WI-09 changes command behavior.',
+  'Revisit when CLI command behavior changes.',
   '--source-ref',
-  'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-09',
+  'docs/design-input/introspection-seed-2026-06-01.md',
   '--source-kind',
   'plan',
   ...extra,
@@ -146,7 +146,7 @@ const techDebtRecord = (
       refs: [
         {
           kind: 'plan',
-          ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-09',
+          ref: 'docs/design-input/introspection-seed-2026-06-01.md',
         },
       ],
     },
@@ -157,13 +157,13 @@ const techDebtRecord = (
     '## Problem',
     'Duplicate IDs need a CLI repair path.',
     '## Why deferred',
-    'This fixture exercises WI-09 ID repair wiring.',
+    'This fixture exercises ID repair CLI wiring.',
     '## Revisit trigger',
     'Revisit when ID repair command behavior changes.',
   ].join('\n\n'),
 });
 
-describe('WI-09 CLI command shell', () => {
+describe('CLI command shell', () => {
   it('returns stable JSON error codes for expected CLI argument failures', async () => {
     await withTempRepo(async (root) => {
       const usageFailure = await run(root, [
@@ -212,7 +212,7 @@ describe('WI-09 CLI command shell', () => {
         '--evidence-kind',
         'doc',
         '--evidence-ref',
-        'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-09',
+        'docs/design-input/introspection-seed-2026-06-01.md',
         '--json',
       ]);
 
@@ -300,7 +300,7 @@ describe('WI-09 CLI command shell', () => {
         '--evidence-kind',
         'doc',
         '--evidence-ref',
-        'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-09',
+        'docs/design-input/introspection-seed-2026-06-01.md',
         '--json',
       ]);
 
@@ -331,7 +331,7 @@ describe('WI-09 CLI command shell', () => {
         '--evidence-kind',
         'doc',
         '--evidence-ref',
-        'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-09',
+        'docs/design-input/introspection-seed-2026-06-01.md',
         '--json',
       ]);
 
@@ -358,7 +358,7 @@ describe('WI-09 CLI command shell', () => {
           '--description',
           'Schema-invalid metadata must not persist.',
           '--provenance-ref',
-          'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-09',
+          'docs/design-input/introspection-seed-2026-06-01.md',
           ...extraArgs,
           '--json',
         ]);
@@ -380,7 +380,7 @@ describe('WI-09 CLI command shell', () => {
         '--description',
         'New topic proposed by the CLI.',
         '--provenance-ref',
-        'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-09',
+        'docs/design-input/introspection-seed-2026-06-01.md',
         '--json',
       ]);
       const approved = await run(root, ['vocab', 'approve', 'topic/new', '--json']);

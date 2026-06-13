@@ -58,7 +58,7 @@ const record: ExportRecordDocument = {
   path: 'tech-debt/open/bp-td-001.md',
 };
 
-describe('WI-11 JSON exporter', () => {
+describe('JSON exporter', () => {
   it('writes stable UTF-8 JSON and returns the output path plus content hash', async () => {
     await withTempRoot(async (root) => {
       const outputPath = path.join(root, 'nested/records.json');

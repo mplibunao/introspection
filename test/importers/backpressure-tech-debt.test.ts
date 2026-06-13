@@ -77,7 +77,7 @@ const withTempRoot = async (testBody: (root: string) => Promise<void>): Promise<
   }
 };
 
-describe('WI-12 legacy backpressure tech-debt parsing', () => {
+describe('legacy backpressure tech-debt parsing', () => {
   it('parses every original TD entry while preserving the TD-005 legacy gap', async () => {
     const entries = parseBackpressureTechDebtTracker(await trackerFixture());
 
@@ -96,7 +96,7 @@ describe('WI-12 legacy backpressure tech-debt parsing', () => {
   });
 });
 
-describe('WI-12 backpressure tech-debt import mapping', () => {
+describe('backpressure tech-debt import mapping', () => {
   it('accounts for every legacy entry with the expected status, disposition, report row, and path', async () => {
     const result = buildBackpressureTechDebtImport({ markdown: await trackerFixture() });
 
@@ -128,7 +128,7 @@ describe('WI-12 backpressure tech-debt import mapping', () => {
   });
 });
 
-describe('WI-12 backpressure tech-debt import record details', () => {
+describe('backpressure tech-debt import record details', () => {
   it('keeps terminal dispositions explicit while leaving active records unresolved', async () => {
     const result = buildBackpressureTechDebtImport({ markdown: await trackerFixture() });
     const recordsByLegacyId = new Map(
@@ -177,7 +177,7 @@ describe('WI-12 backpressure tech-debt import record details', () => {
   });
 });
 
-describe('WI-12 backpressure tech-debt import validation', () => {
+describe('backpressure tech-debt import validation', () => {
   it('writes imported records that pass the existing tech-debt validation engine', async () => {
     await withTempRoot(async (root) => {
       const store = createMarkdownRecordStore({ root });

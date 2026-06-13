@@ -43,7 +43,7 @@ const currentPlatformPackage = (): PlatformPackage => {
     };
   }
 
-  throw new Error(`No WI-13 platform package exists for ${platform}/${arch}.`);
+  throw new Error(`No platform package exists for ${platform}/${arch}.`);
 };
 
 const run = async (
@@ -147,7 +147,7 @@ const seedFixture = async (projectDirectory: string): Promise<void> => {
       'The installed package must parse YAML frontmatter.',
       '',
       '## Why deferred',
-      'The package smoke test validates packaging before WI-14 adoption.',
+      'The package smoke test validates packaging before downstream repo adoption.',
       '',
       '## Revisit trigger',
       'Revisit when package installation changes.',

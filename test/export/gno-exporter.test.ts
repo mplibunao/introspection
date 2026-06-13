@@ -114,7 +114,7 @@ const assertRejectsWithMessage = async (
   assert.fail('Expected promise to reject.');
 };
 
-describe('WI-11 GNO exporter path safety', () => {
+describe('GNO exporter path safety', () => {
   it('rejects unsafe projection path components without writing outside the projection root', async () => {
     await withTempRoot(async (root) => {
       const outputDirectory = path.join(root, 'generated/gno-markdown');

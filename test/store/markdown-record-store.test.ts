@@ -38,7 +38,7 @@ const techDebtRecord = (
     '## Why deferred',
     'The current phase only needs the record store.',
     '## Revisit trigger',
-    'Revisit when the owning work item starts.',
+    'Revisit when the owning feature area changes.',
   ].join('\n\n'),
 ): ParsedRecord<TechDebtFrontmatter> => ({
   frontmatter: {
@@ -94,7 +94,7 @@ const assertRejectsWith = async <ErrorType extends Error>(
   assert.fail(`Expected promise to reject with ${errorConstructor.name}.`);
 };
 
-describe('WI-04 markdown record store operations', () => {
+describe('markdown record store operations', () => {
   it('creates, reads, lists, and updates markdown records with raw-byte hashes', async () => {
     await withTempRoot(async (root) => {
       const store = createMarkdownRecordStore({ root });
@@ -205,7 +205,7 @@ const assertCreateCollisionOutcome = async (
   assert.ok(!/Future stack-neutral React preset[\s\S]*Colliding writer/u.test(finalContent));
 };
 
-describe('WI-04 markdown record store create and update safety', () => {
+describe('markdown record store create and update safety', () => {
   it('uses no-clobber final-target semantics for create collisions in one process', async () => {
     await withTempRoot(async (root) => {
       const store = createMarkdownRecordStore({ root });
@@ -244,7 +244,7 @@ describe('WI-04 markdown record store create and update safety', () => {
   });
 });
 
-describe('WI-04 markdown record store path and write observations', () => {
+describe('markdown record store path and write observations', () => {
   it('rejects writes through symlinked directories inside the records root', async () => {
     await withTempRoot(async (root) => {
       const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'introspection-outside-'));
@@ -301,12 +301,12 @@ describe('WI-04 markdown record store path and write observations', () => {
       assert.ok(!directoryEntries.some((entry) => entry.endsWith('.tmp')));
       assert.match(finalContent, /^---\n/u);
       assert.match(finalContent, /## Revisit trigger/u);
-      assert.match(finalContent, /Revisit when the owning work item starts\./u);
+      assert.match(finalContent, /Revisit when the owning feature area changes\./u);
     });
   });
 });
 
-describe('WI-04 markdown frontmatter parser read failures', () => {
+describe('markdown frontmatter parser read failures', () => {
   it('accepts records with a leading UTF-8 BOM before frontmatter', async () => {
     await withTempRoot(async (root) => {
       const store = createMarkdownRecordStore({ root });
@@ -382,7 +382,7 @@ describe('WI-04 markdown frontmatter parser read failures', () => {
   });
 });
 
-describe('WI-04 markdown frontmatter parser corpus results', () => {
+describe('markdown frontmatter parser corpus results', () => {
   it('returns per-file read results instead of aborting a mixed corpus scan', async () => {
     await withTempRoot(async (root) => {
       const store = createMarkdownRecordStore({ root });

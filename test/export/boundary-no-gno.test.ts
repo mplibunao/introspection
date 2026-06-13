@@ -22,7 +22,7 @@ const term = (tag: string): VocabularyTerm => ({
   description: `Vocabulary term ${tag}.`,
   provenance: {
     kind: 'plan',
-    ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-11',
+    ref: 'docs/design-input/introspection-seed-2026-06-01.md',
     noted_at: timestamp,
   },
 });
@@ -86,7 +86,7 @@ const techDebtRecord = (): ParsedRecord<TechDebtFrontmatter> => ({
       refs: [
         {
           kind: 'plan',
-          ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-11',
+          ref: 'docs/design-input/introspection-seed-2026-06-01.md',
         },
       ],
     },
@@ -98,7 +98,7 @@ const techDebtRecord = (): ParsedRecord<TechDebtFrontmatter> => ({
     '## Why deferred',
     'GNO-assisted features are out of scope for v1 core paths.',
     '## Revisit trigger',
-    'Revisit when a future work item consumes retrieval.',
+    'Revisit when a feature consumes retrieval.',
   ].join('\n\n'),
 });
 
@@ -120,7 +120,7 @@ const run = async (root: string, args: ReadonlyArray<string>): Promise<CliRunRes
 
 const parseJsonStdout = (stdout: string): unknown => JSON.parse(stdout);
 
-describe('WI-11 no-GNO boundary', () => {
+describe('no-GNO boundary', () => {
   it('runs check and prime without a GNO client or retrieval provider', async () => {
     await withTempRepo(async (root) => {
       const check = await run(root, ['check', '--json']);

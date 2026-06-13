@@ -1,4 +1,4 @@
-/* eslint-disable max-lines -- WI-05 keeps allocator, lock-reclaim, and process-concurrency coverage together so the race-test helpers stay local. */
+/* eslint-disable max-lines -- Allocator, lock-reclaim, and process-concurrency coverage stay together so the race-test helpers remain local. */
 import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, utimes, writeFile } from 'node:fs/promises';
 import os from 'node:os';
@@ -201,7 +201,7 @@ const deadProcessId = async (): Promise<number> =>
     });
   });
 
-describe('WI-05 ID formatting and duplicate validation helpers', () => {
+describe('ID formatting and duplicate validation helpers', () => {
   it('renders and parses zero-padded IDs while leaving wider numbers untruncated', () => {
     assert.strictEqual(renderRecordId({ repoKey: 'BP', typePrefix: 'TD', number: 7 }), 'BP-TD-007');
     assert.strictEqual(
@@ -258,7 +258,7 @@ describe('WI-05 ID formatting and duplicate validation helpers', () => {
   });
 });
 
-describe('WI-20 ID scan mutation coverage', () => {
+describe('ID scan mutation coverage', () => {
   it('scans next numbers only from matching repo/type records and valid ID candidates', () => {
     const otherRecordTypeRecord: ParsedRecord = {
       ...techDebtRecord({ id: 'BP-CF-100', number: ignoredOtherRecordTypeNumber }),
@@ -294,7 +294,7 @@ describe('WI-20 ID scan mutation coverage', () => {
   });
 });
 
-describe('WI-05 lock-backed ID allocation', () => {
+describe('lock-backed ID allocation', () => {
   it('rejects record factories that change the assigned ID or number', async () => {
     await withTempRoot(async (root) => {
       const context = contextFor(root);
@@ -422,7 +422,7 @@ const runOwnerSafeReclaimScenario = async (context: IdAllocatorContext): Promise
   assert.strictEqual(await lockExists(context), false);
 };
 
-describe('WI-05 ID allocation lock reclaim', () => {
+describe('ID allocation lock reclaim', () => {
   it('reclaims stale locks whose PID is still alive', async () => {
     await withTempRoot(async (root) => {
       const context = contextFor(root);
@@ -497,7 +497,7 @@ describe('WI-05 ID allocation lock reclaim', () => {
   });
 });
 
-describe('WI-05 ID allocation lock ownership', () => {
+describe('ID allocation lock ownership', () => {
   it(
     'does not let a stale-reclaimed live holder remove the new owner lock',
     async () => {
@@ -564,7 +564,7 @@ const assertMultiProcessStaleReclaimAllocation = async (
   assert.strictEqual(await lockExists(context), false);
 };
 
-describe('WI-05 ID allocation process concurrency', () => {
+describe('ID allocation process concurrency', () => {
   it(
     'prevents duplicate IDs across two separate OS processes in one worktree',
     async () => {

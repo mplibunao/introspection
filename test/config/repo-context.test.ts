@@ -65,7 +65,7 @@ const vocabularyToml = (overrides = ''): string =>
     '',
     '[terms.provenance]',
     'kind = "plan"',
-    'ref = "docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md"',
+    'ref = "docs/design-input/introspection-seed-2026-06-01.md"',
     `noted_at = "${timestamp}"`,
     overrides,
   ]
@@ -122,7 +122,7 @@ const assertNormalizedContext = async (repoRoot: string, nestedCwd: string): Pro
   await assertContextMetadata(repoRoot, nestedCwd);
 };
 
-describe('WI-21 repo context discovery and normalization', () => {
+describe('repo context discovery and normalization', () => {
   it('discovers the nearest ancestor config from a nested cwd and normalizes repo context', async () => {
     await withTempRoot(async (repoRoot) => {
       const nestedCwd = path.join(repoRoot, 'docs/records/tech-debt/open');
@@ -160,7 +160,7 @@ describe('WI-21 repo context discovery and normalization', () => {
   });
 });
 
-describe('WI-21 repo context failure modes', () => {
+describe('repo context failure modes', () => {
   it('reports a missing config instead of falling back to git or the package root', async () => {
     await withTempRoot(async (root) => {
       const error = await assertRejectsWith(loadRepoContext({ cwd: root }), ConfigLoadError);
@@ -233,7 +233,7 @@ describe('WI-21 repo context failure modes', () => {
   });
 });
 
-describe('WI-21 repo context relative path policy', () => {
+describe('repo context relative path policy', () => {
   it('rejects absolute repo config paths', async () => {
     await withTempRoot(async (repoRoot) => {
       await writeIntrospectionFiles(
@@ -269,7 +269,7 @@ describe('WI-21 repo context relative path policy', () => {
   });
 });
 
-describe('WI-21 repo context symlink failure modes', () => {
+describe('repo context symlink failure modes', () => {
   it('rejects a symlinked records root that resolves outside the repo', async () => {
     await withTempRoot(async (repoRoot) => {
       const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'introspection-outside-'));

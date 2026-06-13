@@ -95,7 +95,7 @@ const workerLockRequest = (): { readonly lock?: { readonly staleAfterMs: number 
   return {};
 };
 
-describe('WI-05 allocator worker fixture', () => {
+describe('allocator worker fixture', () => {
   it('allocates one record when launched with worker environment', async () => {
     const context = workerContext();
 

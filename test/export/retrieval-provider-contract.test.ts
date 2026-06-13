@@ -51,7 +51,7 @@ const providerCases: ReadonlyArray<[string, RetrievalProvider]> = [
   ['gno adapter', createGnoRetrievalAdapter(gnoClient())],
 ];
 
-describe('WI-11 RetrievalProvider contract', () => {
+describe('RetrievalProvider contract', () => {
   it.each(providerCases)(
     '%s returns deterministic, limited, tag-filtered results',
     async (providerName, provider) => {

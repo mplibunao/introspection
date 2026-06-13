@@ -72,5 +72,5 @@
     }
   },
   "additionalProperties": false,
-  "$comment": "The vocabulary schema owns tag term shape only. A future validator must enforce terms.x-unique_by so duplicate tag entries fail with remediation. WI-08 will own cascade mechanics such as rename, merge, usage, and delete-if-unused."
+  "$comment": "The vocabulary schema owns tag term shape only. Runtime validation must enforce terms.x-unique_by so duplicate tag entries fail with remediation; service logic owns cascade mechanics such as rename, merge, usage, and delete-if-unused."
 }

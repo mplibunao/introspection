@@ -46,7 +46,7 @@ const resolution = (disposition: TechDebtFrontmatter['status']): Resolution => (
   rationale: `The ${disposition} terminal state has a rationale.`,
 });
 
-describe('WI-06 lifecycle status helpers', () => {
+describe('lifecycle status helpers', () => {
   it('lists only terminal statuses and classifies unknown statuses as active', () => {
     assert.deepStrictEqual(terminalStatuses(techDebtRecordType), [
       'done',
@@ -60,7 +60,7 @@ describe('WI-06 lifecycle status helpers', () => {
   });
 });
 
-describe('WI-06 lifecycle evidence validation', () => {
+describe('lifecycle evidence validation', () => {
   it('rejects every terminal tech-debt state when rationale/evidence shape is missing', () => {
     const terminalCases = [
       {

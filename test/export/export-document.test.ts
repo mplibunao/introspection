@@ -30,7 +30,7 @@ const frontmatter = (id: string, number: number, title: string): TechDebtFrontma
     refs: [
       {
         kind: 'plan',
-        ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-20',
+        ref: 'docs/design-input/introspection-seed-2026-06-01.md',
       },
     ],
   },
@@ -72,7 +72,7 @@ const manifestRepoContext: RepoContext = {
   vocabulary: { schema_version: 1, terms: [] },
 };
 
-describe('WI-20 export document model', () => {
+describe('export document model', () => {
   it('orders exported records by stable ID then path and preserves source paths', () => {
     const records = [
       storedRecord('BP-TD-002', secondRecordNumber, 'Second record', 'tech-debt/open/bp-td-002.md'),

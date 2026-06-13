@@ -45,7 +45,7 @@
     },
     "prime": {
       "type": "object",
-      "$comment": "WI-10 validation must enforce prime.hard_limit >= prime.default_limit when both values are present.",
+      "$comment": "JSON Schema bounds individual values; runtime validation must enforce prime.hard_limit >= prime.default_limit when both values are present.",
       "properties": {
         "default_limit": {
           "type": "integer",

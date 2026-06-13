@@ -117,7 +117,7 @@ const dispositionSpecs: Readonly<Record<string, DispositionSpec>> = {
     disposition: 'superseded',
     evidenceRefs: [{ kind: 'doc', ref: 'docs/design-docs/rule-intake.md' }],
     rationale:
-      "Earn-the-gate candidates are rule intake's job. During WI-14, add the two named rule candidates (`no-js-extension-imports`, `no-opaque-instance-fields`; reference impls in effect-smol `@effect/oxc`) to `rule-intake.md` if absent.",
+      "Earn-the-gate candidates are rule intake's job. Add the two named rule candidates (`no-js-extension-imports`, `no-opaque-instance-fields`; reference impls in effect-smol `@effect/oxc`) to `rule-intake.md` if absent during adoption.",
     status: 'superseded',
   },
   'TD-007': {
@@ -177,7 +177,7 @@ const revisitTriggerFor = (spec: DispositionSpec): string => {
     return 'Revisit in backpressure when the original tracker condition above is ready for implementation.';
   }
 
-  return `No further trigger remains; the WI-12 migration disposition closed this legacy entry as ${spec.status}.`;
+  return `No further trigger remains; the migration disposition closed this legacy entry as ${spec.status}.`;
 };
 
 const bodyFor = (entry: LegacyBackpressureTechDebtEntry, spec: DispositionSpec): string => {
@@ -268,7 +268,7 @@ const specFor = (originalId: string): DispositionSpec => {
   if (!spec) {
     throw new IntrospectionError(
       'backpressure_import.disposition_missing',
-      'Backpressure tracker entry has no WI-12 disposition.',
+      'Backpressure tracker entry has no import disposition.',
       { originalId },
     );
   }
@@ -345,7 +345,7 @@ const assertExpectedLegacyEntries = (
   if (unknownIds.length > 0 || missingIds.length > 0) {
     throw new IntrospectionError(
       'backpressure_import.legacy_entries.mismatch',
-      'Backpressure tracker entries do not match the WI-12 disposition table.',
+      'Backpressure tracker entries do not match the importer disposition table.',
       { actualIds, expectedLegacyIds, missingIds, unknownIds },
     );
   }

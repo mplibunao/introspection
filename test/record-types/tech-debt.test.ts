@@ -27,7 +27,7 @@ const validBody = [
   '## Why deferred',
   'The owning phase has a narrower scope.',
   '## Revisit trigger',
-  'Revisit when the owning work item starts.',
+  'Revisit when the owning feature area changes.',
 ].join('\n\n');
 
 const record = (
@@ -63,7 +63,7 @@ const resolution = (disposition: TechDebtFrontmatter['status']): Resolution => (
   rationale: `The ${disposition} terminal state has a dated rationale.`,
 });
 
-describe('WI-07 tech-debt body shape', () => {
+describe('tech-debt body shape', () => {
   it('keeps required body-heading validation aligned with schema metadata', () => {
     const requiredHeadings = techDebtSchema['x-required_headings'];
 
@@ -128,7 +128,7 @@ describe('WI-07 tech-debt body shape', () => {
   });
 });
 
-describe('WI-07 tech-debt body shape fences and whitespace', () => {
+describe('tech-debt body shape fences and whitespace', () => {
   it('accepts required headings after closing fenced code blocks', () => {
     const body = [
       'One-line summary.',
@@ -143,7 +143,7 @@ describe('WI-07 tech-debt body shape fences and whitespace', () => {
       '## Why deferred',
       'The owning phase has a narrower scope.',
       '## Revisit trigger',
-      'Revisit when the owning work item starts.',
+      'Revisit when the owning feature area changes.',
     ].join('\n');
 
     assert.deepStrictEqual(techDebtRecordType.validate(record({}, body), validationContext), []);
@@ -157,7 +157,7 @@ describe('WI-07 tech-debt body shape fences and whitespace', () => {
       '  ## Why deferred',
       'The owning phase has a narrower scope.',
       '## Revisit trigger  ',
-      'Revisit when the owning work item starts.',
+      'Revisit when the owning feature area changes.',
     ].join('\n\n');
 
     assert.deepStrictEqual(techDebtRecordType.validate(record({}, body), validationContext), []);
@@ -174,8 +174,8 @@ describe('WI-07 tech-debt body shape fences and whitespace', () => {
   });
 });
 
-describe('WI-07 tech-debt lifecycle ownership', () => {
-  it('leaves terminal evidence failures to the WI-06 core lifecycle validator', () => {
+describe('tech-debt lifecycle ownership', () => {
+  it('leaves terminal evidence failures to the core lifecycle validator', () => {
     const doneWithoutEvidence = record({
       status: 'done',
       tags: ['record/tech-debt', 'repo/backpressure', 'status/done', 'visibility/local-only'],
@@ -189,7 +189,7 @@ describe('WI-07 tech-debt lifecycle ownership', () => {
     );
   });
 
-  it('accepts terminal lifecycle evidence through the WI-06 core lifecycle validator', () => {
+  it('accepts terminal lifecycle evidence through the core lifecycle validator', () => {
     const doneWithEvidence = record({
       status: 'done',
       tags: ['record/tech-debt', 'repo/backpressure', 'status/done', 'visibility/local-only'],
@@ -203,8 +203,8 @@ describe('WI-07 tech-debt lifecycle ownership', () => {
   });
 });
 
-describe('WI-07 tech-debt machine tags and projections', () => {
-  it('derives deterministic tags that match the WI-06 machine-tag invariant', () => {
+describe('tech-debt machine tags and projections', () => {
+  it('derives deterministic tags that match the core machine-tag invariant', () => {
     const fixture = record();
     const expected = [
       'record/tech-debt',

@@ -95,7 +95,7 @@ const withTempPackage = async (
   }
 };
 
-describe('WI-13 package launcher', () => {
+describe('package launcher', () => {
   it('keeps launcher platform IDs aligned with platform package manifests', async () => {
     const launcherSource = await readFile(launcherSourcePath, 'utf8');
 

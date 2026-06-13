@@ -23,7 +23,7 @@ const term = (tag: string): VocabularyTerm => ({
   description: `Vocabulary term ${tag}.`,
   provenance: {
     kind: 'plan',
-    ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-11',
+    ref: 'docs/design-input/introspection-seed-2026-06-01.md',
     noted_at: timestamp,
   },
 });
@@ -83,7 +83,7 @@ const techDebtRecord = (number: number, title: string): ParsedRecord<TechDebtFro
       refs: [
         {
           kind: 'plan',
-          ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-11',
+          ref: 'docs/design-input/introspection-seed-2026-06-01.md',
         },
       ],
     },
@@ -93,7 +93,7 @@ const techDebtRecord = (number: number, title: string): ParsedRecord<TechDebtFro
     '## Problem',
     'Exports need deterministic generated artifacts.',
     '## Why deferred',
-    'The export command is implemented in WI-11.',
+    'The export command needs recreate coverage.',
     '## Revisit trigger',
     'Revisit when generated export shape changes.',
   ].join('\n\n'),
@@ -169,7 +169,7 @@ const assertJsonExportEntry = (entry: {
   assert.strictEqual(entry.record_count, 2);
 };
 
-describe('WI-11 export artifacts', () => {
+describe('export artifacts', () => {
   it('deletes and recreates logically identical default generated exports', async () => {
     await withTempRepo(async (root) => {
       const first = await run(root, ['export', '--json']);

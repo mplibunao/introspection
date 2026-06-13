@@ -449,7 +449,7 @@ const registerDuplicateMembershipTests = (): void => {
   });
 };
 
-describe('WI-05 duplicate repair service', () => {
+describe('duplicate repair service', () => {
   registerSuccessfulRepairTest();
   registerConflictSafetyTests();
   registerPartialRepairSafetyTests();

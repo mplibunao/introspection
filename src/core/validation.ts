@@ -147,7 +147,7 @@ const unsupportedRecordTypeFinding = (
   severity: 'error',
   message: `Record type "${record.frontmatter.record_type}" is not registered.`,
   path: ['record_type'],
-  remediation: `Use a registered record_type (${registry.keys().join(', ')}) or add the type to the static registry in a future work item.`,
+  remediation: `Use a registered record_type (${registry.keys().join(', ')}) or add the type to the static registry.`,
 });
 
 const unsupportedSchemaVersionFinding = (record: ParsedRecord): Finding | null => {
@@ -161,7 +161,7 @@ const unsupportedSchemaVersionFinding = (record: ParsedRecord): Finding | null =
     message: `Schema version ${record.frontmatter.schema_version} is not supported by this checker.`,
     path: ['schema_version'],
     remediation:
-      'Migrate this record to schema_version 1 before continuing. Automated schema migration is intentionally outside WI-06.',
+      'Migrate this record to schema_version 1 before continuing. Automated schema migration is intentionally outside the validation engine.',
   };
 };
 
@@ -323,7 +323,7 @@ const staleMachineTagFinding = (tag: string, expectedTags: ReadonlyArray<string>
   severity: 'error',
   message: `Machine-owned tag "${tag}" is not valid for this record state.`,
   path: ['tags'],
-  remediation: `Replace machine-owned tags with: ${expectedTags.join(', ')}. Preserve non-machine vocabulary tags for WI-08 validation.`,
+  remediation: `Replace machine-owned tags with: ${expectedTags.join(', ')}. Preserve non-machine vocabulary tags for vocabulary validation.`,
 });
 
 const tagInvariantFindings = <Frontmatter extends BaseRecordFrontmatter>(

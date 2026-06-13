@@ -30,7 +30,7 @@ import { createMarkdownRecordStore } from '../../src/store/markdown-record-store
 const timestamp = '2026-06-10T00:00:00Z';
 const provenance: VocabularyProvenance = {
   kind: 'plan',
-  ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-08',
+  ref: 'docs/design-input/introspection-seed-2026-06-01.md',
   noted_at: timestamp,
 };
 
@@ -90,7 +90,7 @@ const techDebtRecord = (
     '## Problem',
     'The vocabulary service needs a valid tech-debt-shaped record.',
     '## Why deferred',
-    'This fixture supports WI-08 service tests.',
+    'This fixture supports vocabulary service tests.',
     '## Revisit trigger',
     'Revisit when vocabulary behavior changes.',
   ].join('\n\n'),
@@ -270,7 +270,7 @@ const assertCascadeObservation = (
   );
 };
 
-describe('WI-08 vocabulary lifecycle service', () => {
+describe('vocabulary lifecycle service', () => {
   it('proposes, approves, rejects, lists, and reports usage while preserving provenance', async () => {
     await withTempRoot(async (root) => {
       assertLifecycleObservation(await runLifecycleFixture(root));
@@ -355,7 +355,7 @@ const storeFailingAfterFirstUpdate = (store: MarkdownRecordStore): MarkdownRecor
   };
 };
 
-describe('WI-08 vocabulary cascade safety', () => {
+describe('vocabulary cascade safety', () => {
   it('renames and merges tags only through the configured records-root store', async () => {
     await withTempRoot(async (root) => {
       assertCascadeObservation(await runCascadeFixture(root));
@@ -395,7 +395,7 @@ describe('WI-08 vocabulary cascade safety', () => {
   });
 });
 
-describe('WI-08 vocabulary mutation safety', () => {
+describe('vocabulary mutation safety', () => {
   it('serializes concurrent proposals without losing either write', async () => {
     await withTempRoot(async (root) => {
       const context = contextFor(root, vocabulary([term('owner/mp')]));
@@ -440,7 +440,7 @@ describe('WI-08 vocabulary mutation safety', () => {
   });
 });
 
-describe('WI-08 vocabulary delete safety', () => {
+describe('vocabulary delete safety', () => {
   it('fails when records still use a term and deletes only after usage reaches zero', async () => {
     await withTempRoot(async (root) => {
       const context = contextFor(root, vocabulary([term('owner/mp'), term('topic/unused')]));

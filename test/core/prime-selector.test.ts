@@ -61,7 +61,7 @@ const record = (
         refs: [
           {
             kind: 'plan',
-            ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-10',
+            ref: 'docs/design-input/introspection-seed-2026-06-01.md',
           },
         ],
       },
@@ -72,7 +72,7 @@ const record = (
       '## Problem',
       'Prime needs deterministic selector coverage.',
       '## Why deferred',
-      'The selector is being implemented in WI-10.',
+      'The selector needs deterministic ordering coverage.',
       '## Revisit trigger',
       'Revisit when prime ordering or filters change.',
     ].join('\n\n'),
@@ -84,7 +84,7 @@ const candidate = (
   relativePath = `tech-debt/${parsedRecord.frontmatter.status}/${parsedRecord.frontmatter.id.toLowerCase()}.md`,
 ): PrimeCandidateRecord => ({ record: parsedRecord, relativePath });
 
-describe('WI-10 prime selector', () => {
+describe('prime selector', () => {
   it('excludes terminal records by default and includes them when explicitly requested', () => {
     const active = candidate(record(1, 'Active record', '2026-06-10T00:00:00Z'));
     const terminal = candidate(

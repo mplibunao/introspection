@@ -20,7 +20,7 @@ import { createMarkdownRecordStore } from '../../src/store/markdown-record-store
 const timestamp = '2026-06-10T00:00:00Z';
 const provenance: VocabularyProvenance = {
   kind: 'plan',
-  ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-08',
+  ref: 'docs/design-input/introspection-seed-2026-06-01.md',
   noted_at: timestamp,
 };
 
@@ -105,7 +105,7 @@ const techDebtRecord = (tags: ReadonlyArray<string>): ParsedRecord<TechDebtFront
     '## Problem',
     'The vocabulary validator needs a valid tech-debt-shaped record.',
     '## Why deferred',
-    'This fixture supports WI-08 validation tests.',
+    'This fixture supports vocabulary validation tests.',
     '## Revisit trigger',
     'Revisit when vocabulary validation changes.',
   ].join('\n\n'),
@@ -186,7 +186,7 @@ const assertUnknownTagObservation = (observation: UnknownTagObservation): void =
   assert.strictEqual(observation.proposedReport.ok, true);
 };
 
-describe('WI-08 unknown-tag validation', () => {
+describe('unknown-tag validation', () => {
   it('turns unknown raw tags into remediation findings and accepts explicit provisional proposals', async () => {
     await withTempRoot(async (root) => {
       assertUnknownTagObservation(await runUnknownTagFixture(root));
@@ -194,7 +194,7 @@ describe('WI-08 unknown-tag validation', () => {
   });
 });
 
-describe('WI-08 rejected and alias validation', () => {
+describe('rejected and alias validation', () => {
   it('rejects aliases and rejected terms with direct remediation', async () => {
     await withTempRoot(async (root) => {
       const currentVocabulary = vocabulary([
@@ -241,7 +241,7 @@ describe('WI-08 rejected and alias validation', () => {
   });
 });
 
-describe('WI-08 vocabulary integrity validation', () => {
+describe('vocabulary integrity validation', () => {
   it('rejects duplicate canonical tags from hand-edited vocabulary files', async () => {
     await withTempRoot(async (root) => {
       const report = await checkVocabularyOnly(

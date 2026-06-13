@@ -22,7 +22,7 @@ const term = (tag: string): VocabularyTerm => ({
   description: `Vocabulary term ${tag}.`,
   provenance: {
     kind: 'plan',
-    ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-10',
+    ref: 'docs/design-input/introspection-seed-2026-06-01.md',
     noted_at: timestamp,
   },
 });
@@ -99,7 +99,7 @@ const techDebtRecord = (
         refs: [
           {
             kind: 'plan',
-            ref: 'docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md#wi-10',
+            ref: 'docs/design-input/introspection-seed-2026-06-01.md',
           },
         ],
       },
@@ -110,7 +110,7 @@ const techDebtRecord = (
       '## Problem',
       'Prime needs CLI coverage.',
       '## Why deferred',
-      'The deterministic prime command is being implemented in WI-10.',
+      'The deterministic prime command needs CLI coverage.',
       '## Revisit trigger',
       'Revisit when prime command behavior changes.',
     ].join('\n\n'),
@@ -149,7 +149,7 @@ const parseJsonStdout = (stdout: string): unknown => JSON.parse(stdout);
 const errorCodeFromStdout = (stdout: string): string =>
   (parseJsonStdout(stdout) as { error: { code: string } }).error.code;
 
-describe('WI-10 prime CLI command', () => {
+describe('prime CLI command', () => {
   it('renders bounded human output with omitted counts and active records by default', async () => {
     await withTempRepo(async (root) => {
       await seedRecords(root);
