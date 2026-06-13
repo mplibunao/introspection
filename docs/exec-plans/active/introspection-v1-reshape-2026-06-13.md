@@ -1,5 +1,7 @@
 # introspection v1 reshape: prime split, generic importer, adoption playbook, release close-out
 
+> **Execution status** lives in the companion gate ledger [`reshape-progress-ledger.md`](./reshape-progress-ledger.md), updated per work item after each commit. This file is the spec (what to build and why); the ledger is the running record of what landed, which review and refactor gates ran, and the commits.
+
 ## Goal
 
 Correct the v1 record kernel before release: split `prime` into a compact repo-orientation packet plus a new `records list` command, rebuild the backpressure-specific importer into a generic `introspection import` CLI mechanism, exercise it by migrating taste-distillery, distill a reusable post-publish adoption playbook, and port the one remaining bootstrap work item (WI-19, npm publish + backpressure pin) so the bootstrap plan can move to `completed/`. It also closes a Vale gap surfaced mid-flow: introspection and taste-distillery's own canon shipped without the doc-garden ai-tells profile, so the plan fixes introspection's gate (WI-R10) and taste-distillery's gate plus the canon guidance that misrouted both (WI-R11). This plan is the authoritative, self-contained record of the reshape decisions and the ordered work to execute them.
