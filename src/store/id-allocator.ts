@@ -1,5 +1,5 @@
 import { IntrospectionError } from '../core/errors.js';
-import { canonicalRecordRelativePath, nextRecordNumber, renderRecordId } from '../core/id.js';
+import { createRecordIdentity, nextRecordNumber } from '../core/id.js';
 import type { BaseRecordFrontmatter, ParsedRecord, RecordType } from '../core/record-type-types.js';
 import type { RepoContext } from '../config/repo-context.js';
 
@@ -48,24 +48,15 @@ const withLocalIdLock = async <Result>(
 ): Promise<Result> =>
   withLocalNamedLock(context, lockNameFor(recordType), work, idLockOptions(options));
 
+// Thin wrapper so the allocator does not re-implement ID/path composition;
+// AllocatedRecordIdentity stays structurally identical to RecordIdentity.
 const createIdentity = (
   context: IdAllocatorContext | RepoContext,
   recordType: RecordType,
   number: number,
   status: string,
-): AllocatedRecordIdentity => {
-  const id = renderRecordId({ repoKey: context.repoKey, typePrefix: recordType.idPrefix, number });
-
-  return {
-    id,
-    number,
-    relativePath: canonicalRecordRelativePath({
-      id,
-      recordTypeKey: recordType.key,
-      status,
-    }),
-  };
-};
+): AllocatedRecordIdentity =>
+  createRecordIdentity({ repoKey: context.repoKey, recordType, number, status });
 
 const assertFactoryPreservedIdentity = (
   identity: AllocatedRecordIdentity,

@@ -235,6 +235,13 @@ describe('CLI command shell', () => {
           .status,
         'done',
       );
+      // Canonical-path assertion: the transitioned record must land at the path
+      // Produced by canonicalRecordRelativePath, not any hand-rolled alternative.
+      assert.strictEqual(
+        (parseJsonStdout(transitioned.stdout) as { transition: { path: string } }).transition.path,
+        'tech-debt/done/bp-td-001.md',
+        'transitioned record must land at canonicalRecordRelativePath-derived path',
+      );
     });
   });
 

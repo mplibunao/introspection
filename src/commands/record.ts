@@ -1,4 +1,4 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
+/* eslint-disable no-duplicate-imports, import/max-dependencies -- Import-style rules require separate top-level type imports. This command module legitimately depends on all listed modules to implement both create and transition in one cohesive unit; the count reflects scope, not excess coupling. */
 import { access } from 'node:fs/promises';
 
 import type { RepoContext } from '../config/repo-context.js';
@@ -11,12 +11,13 @@ import type {
   Resolution,
   SourceBlock,
 } from '../core/record-type-types.js';
+import { canonicalRecordRelativePath } from '../core/id.js';
+import { buildRecordCandidate } from '../core/record-candidate.js';
 import { checkRecordResults } from '../core/validation.js';
 import { recordHuman, transitionHuman } from '../presenters/human.js';
 import { recordJson, transitionJson } from '../presenters/json.js';
 import { techDebtRecordType } from '../record-types/tech-debt.js';
 import { recordTypeRegistry } from '../record-types/registry.js';
-import type { TechDebtFrontmatter } from '../record-types/tech-debt-types.js';
 import { allocateRecord } from '../store/id-allocator.js';
 import type { AllocatedRecordIdentity } from '../store/id-allocator.js';
 import type { StoredMarkdownRecord } from '../store/markdown-record-store.js';
@@ -43,8 +44,6 @@ const recordCreateUsage =
 const recordTransitionUsage =
   'introspection record transition <record-path> <status> --rationale <text> [--evidence-ref <ref>] [--json]';
 const transitionArgumentCount = 2;
-const markdownExtension = '.md';
-
 const unique = (values: ReadonlyArray<string>): ReadonlyArray<string> => [...new Set(values)];
 
 const renderCreatedRecord = (json: boolean, record: StoredMarkdownRecord): string => {
@@ -119,54 +118,34 @@ const assertCandidateRecordIsValid = (
   }
 };
 
-const techDebtFrontmatter = (
-  flags: Map<string, ReadonlyArray<string>>,
-  context: RepoContext,
-  identity: AllocatedRecordIdentity,
-  now: string,
-): TechDebtFrontmatter => ({
-  schema_version: 1,
-  id: identity.id,
-  repo_key: context.repoKey,
-  record_type: 'tech-debt',
-  number: identity.number,
-  title: requiredFlag(flags, 'title'),
-  status: 'open',
-  type: 'introspection-record',
-  category: 'tech-debt',
-  visibility: context.defaultVisibility,
-  created_at: now,
-  updated_at: now,
-  tags: unique([
-    'record/tech-debt',
-    `repo/${context.repoSlug}`,
-    'status/open',
-    `visibility/${context.defaultVisibility}`,
-    ...flagValues(flags, 'tag'),
-  ]),
-  source: buildSource(now, optionalSourceRef(flags)),
-});
-
 const makeTechDebtRecord =
-  (
-    flags: Map<string, ReadonlyArray<string>>,
-    context: RepoContext,
-    now: string,
-  ): ((identity: AllocatedRecordIdentity) => ParsedRecord<TechDebtFrontmatter>) =>
-  (identity) => {
-    const record = {
-      frontmatter: techDebtFrontmatter(flags, context, identity, now),
-      body: techDebtBody(flags),
-    };
+  (flags: Map<string, ReadonlyArray<string>>, context: RepoContext, now: string) =>
+  (identity: AllocatedRecordIdentity): ParsedRecord => {
+    const body = techDebtBody(flags);
+    // Delegate frontmatter assembly, identity, and machine-tag derivation to the
+    // Shared core builder; CLI parsing and body/source construction stay here.
+    const candidate = buildRecordCandidate({
+      recordType: techDebtRecordType,
+      repoKey: context.repoKey,
+      number: identity.number,
+      status: 'open',
+      title: requiredFlag(flags, 'title'),
+      visibility: context.defaultVisibility,
+      createdAt: now,
+      body,
+      source: buildSource(now, optionalSourceRef(flags)),
+      userTags: flagValues(flags, 'tag'),
+      validationContext: validationContextFor(context),
+    });
 
     assertCandidateRecordIsValid(
       context,
-      record,
+      candidate.record,
       'record.create.invalid',
       'Created record candidate failed validation before write.',
     );
 
-    return record;
+    return candidate.record;
   };
 
 const createTechDebtRecord = async (
@@ -266,9 +245,6 @@ const transitionFailure = (
     ),
   );
 
-const transitionTargetPath = (record: ParsedRecord): string =>
-  `${record.frontmatter.record_type}/${record.frontmatter.status}/${record.frontmatter.id.toLowerCase()}${markdownExtension}`;
-
 const pathExists = async (absolutePath: string): Promise<boolean> => {
   try {
     await access(absolutePath);
@@ -301,7 +277,12 @@ const updateAndMoveTransitionedRecord = async (
   record: StoredMarkdownRecord,
   transitioned: ParsedRecord,
 ): Promise<StoredMarkdownRecord> => {
-  const targetPath = transitionTargetPath(transitioned);
+  // CanonicalRecordRelativePath is the single source of truth for path construction.
+  const targetPath = canonicalRecordRelativePath({
+    id: transitioned.frontmatter.id,
+    recordTypeKey: transitioned.frontmatter.record_type,
+    status: transitioned.frontmatter.status,
+  });
   await assertTransitionTargetAvailable(store, record, targetPath);
   const updated = await store.updateRecord(record, transitioned);
 
