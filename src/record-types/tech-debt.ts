@@ -6,7 +6,7 @@ import type {
   LifecycleDefinition,
   Finding,
   ParsedRecord,
-  PrimeSummary,
+  RecordListSummary,
   RecordType,
   ValidationContext,
 } from '../core/record-type-types.js';
@@ -161,7 +161,7 @@ const techDebtRecordType: RecordType<TechDebtFrontmatter> = {
     return tags.filter((tag): tag is string => tag !== null);
   },
   validate: (record) => validateRequiredBodyHeadings(record),
-  summarizeForPrime: (record: ParsedRecord<TechDebtFrontmatter>): PrimeSummary => ({
+  summarizeForList: (record: ParsedRecord<TechDebtFrontmatter>): RecordListSummary => ({
     id: record.frontmatter.id,
     title: record.frontmatter.title,
     recordType: record.frontmatter.record_type,

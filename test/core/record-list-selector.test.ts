@@ -1,9 +1,9 @@
-/* eslint-disable max-lines-per-function, max-statements, no-duplicate-imports, no-magic-numbers -- Prime selector mutation tests use compact numbered fixtures to make ordering, filtering, and omitted-count expectations obvious. */
+/* eslint-disable max-lines-per-function, max-statements, no-duplicate-imports, no-magic-numbers -- Record-list selector mutation tests use compact numbered fixtures to make ordering, filtering, and omitted-count expectations obvious. */
 import { assert, describe, it } from '@effect/vitest';
 
 import { IntrospectionError } from '../../src/core/errors.js';
-import { selectPrimeRecords } from '../../src/core/prime-selector.js';
-import type { PrimeCandidateRecord } from '../../src/core/prime-selector.js';
+import { selectRecordList } from '../../src/core/record-list-selector.js';
+import type { RecordListCandidate } from '../../src/core/record-list-selector.js';
 import type {
   BaseRecordFrontmatter,
   ParsedRecord,
@@ -82,9 +82,9 @@ const record = (
 const candidate = (
   parsedRecord: ParsedRecord,
   relativePath = `tech-debt/${parsedRecord.frontmatter.status}/${parsedRecord.frontmatter.id.toLowerCase()}.md`,
-): PrimeCandidateRecord => ({ record: parsedRecord, relativePath });
+): RecordListCandidate => ({ record: parsedRecord, relativePath });
 
-describe('prime selector', () => {
+describe('record-list selector', () => {
   it('excludes terminal records by default and includes them when explicitly requested', () => {
     const active = candidate(record(1, 'Active record', '2026-06-10T00:00:00Z'));
     const terminal = candidate(
@@ -99,13 +99,13 @@ describe('prime selector', () => {
       }),
     );
 
-    const defaultSelection = selectPrimeRecords({
+    const defaultSelection = selectRecordList({
       records: [terminal, active],
       registry: recordTypeRegistry,
       context: validationContext,
       now,
     });
-    const terminalSelection = selectPrimeRecords({
+    const terminalSelection = selectRecordList({
       records: [terminal, active],
       registry: recordTypeRegistry,
       context: validationContext,
@@ -124,7 +124,7 @@ describe('prime selector', () => {
   });
 
   it('uses deterministic oldest-updated ordering with stable tie breakers and controlled age', () => {
-    const selection = selectPrimeRecords({
+    const selection = selectRecordList({
       records: [
         candidate(record(10, 'Newest', '2026-06-11T00:00:00Z')),
         candidate(record(2, 'Tie lower number', '2026-06-10T00:00:00Z')),
@@ -144,7 +144,7 @@ describe('prime selector', () => {
   });
 
   it('falls through to stable tie breakers when timestamps are invalid', () => {
-    const selection = selectPrimeRecords({
+    const selection = selectRecordList({
       records: [
         candidate(record(5, 'Invalid higher number', 'not-a-date')),
         candidate(record(4, 'Invalid lower number', 'also-not-a-date')),
@@ -167,14 +167,14 @@ describe('prime selector', () => {
       candidate(record(number, `Record ${number}`, `2026-06-0${number}T00:00:00Z`)),
     );
 
-    const defaultSelection = selectPrimeRecords({
+    const defaultSelection = selectRecordList({
       records,
       registry: recordTypeRegistry,
       context: validationContext,
       now,
       limits: { defaultLimit: 2, hardLimit: 4 },
     });
-    const clampedSelection = selectPrimeRecords({
+    const clampedSelection = selectRecordList({
       records,
       registry: recordTypeRegistry,
       context: validationContext,
@@ -196,7 +196,7 @@ describe('prime selector', () => {
       candidate(record(number, `Record ${number}`, `2026-06-0${number}T00:00:00Z`)),
     );
 
-    const exactHardLimitSelection = selectPrimeRecords({
+    const exactHardLimitSelection = selectRecordList({
       records,
       registry: recordTypeRegistry,
       context: validationContext,
@@ -235,7 +235,7 @@ describe('prime selector', () => {
 
     for (const invalidCase of invalidCases) {
       try {
-        selectPrimeRecords({
+        selectRecordList({
           records,
           registry: recordTypeRegistry,
           context: validationContext,
@@ -254,7 +254,7 @@ describe('prime selector', () => {
   });
 
   it('normalizes filters deterministically and records read failures in the result metadata', () => {
-    const selection = selectPrimeRecords({
+    const selection = selectRecordList({
       records: [candidate(record(1, 'Record 1', '2026-06-01T00:00:00Z'))],
       registry: recordTypeRegistry,
       context: validationContext,
@@ -302,7 +302,7 @@ describe('prime selector', () => {
       'tech-debt/open/other.md',
     );
 
-    const selection = selectPrimeRecords({
+    const selection = selectRecordList({
       records: [wrongRepo, wrongPath, matching],
       registry: recordTypeRegistry,
       context: validationContext,
@@ -361,7 +361,7 @@ describe('prime selector', () => {
       'tech-debt/open/windows.md',
     );
 
-    const selection = selectPrimeRecords({
+    const selection = selectRecordList({
       records: [partialTagMatch, windowsPathMatch, fullMatch],
       registry: recordTypeRegistry,
       context: validationContext,
@@ -440,7 +440,7 @@ describe('prime selector', () => {
       'tech-debt/archive/wrong-path.md',
     );
 
-    const selection = selectPrimeRecords({
+    const selection = selectRecordList({
       records: [wrongType, wrongStatus, wrongTags, wrongPath, pathTieBreaker, matchingB, matchingA],
       registry: recordTypeRegistry,
       context: validationContext,
@@ -474,13 +474,13 @@ describe('prime selector', () => {
       }),
     );
 
-    const scopedSelection = selectPrimeRecords({
+    const scopedSelection = selectRecordList({
       records: [otherRepo, unknownType, currentRepo],
       registry: recordTypeRegistry,
       context: validationContext,
       now,
     });
-    const unscopedSelection = selectPrimeRecords({
+    const unscopedSelection = selectRecordList({
       records: [otherRepo, currentRepo],
       registry: recordTypeRegistry,
       context: { recordsRoot: '/tmp/docs/records' },

@@ -121,20 +121,22 @@ const run = async (root: string, args: ReadonlyArray<string>): Promise<CliRunRes
 const parseJsonStdout = (stdout: string): unknown => JSON.parse(stdout);
 
 describe('no-GNO boundary', () => {
-  it('runs check and prime without a GNO client or retrieval provider', async () => {
+  it('runs check, prime, and records list without a GNO client or retrieval provider', async () => {
     await withTempRepo(async (root) => {
       const check = await run(root, ['check', '--json']);
       const prime = await run(root, ['prime', '--json']);
+      const list = await run(root, ['records', 'list', '--json']);
       const checkPayload = parseJsonStdout(check.stdout) as { ok: boolean };
-      const primePayload = parseJsonStdout(prime.stdout) as {
-        prime: { records: Array<{ id: string }> };
+      const listPayload = parseJsonStdout(list.stdout) as {
+        list: { records: Array<{ id: string }> };
       };
 
       assert.strictEqual(check.exitCode, 0);
       assert.strictEqual(checkPayload.ok, true);
       assert.strictEqual(prime.exitCode, 0);
+      assert.strictEqual(list.exitCode, 0);
       assert.deepStrictEqual(
-        primePayload.prime.records.map((record) => record.id),
+        listPayload.list.records.map((record) => record.id),
         ['BP-TD-001'],
       );
     });

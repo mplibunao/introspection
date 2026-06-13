@@ -18,7 +18,7 @@ export type {
   LifecycleStatusKind,
   LifecycleTransitionDefinition,
   ParsedRecord,
-  PrimeSummary,
+  RecordListSummary,
   RecordType,
   RecordTypeRegistry,
   Resolution,

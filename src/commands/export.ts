@@ -15,6 +15,8 @@ import {
   assertNoExtraPositionals,
   cliArgumentError,
   failure,
+  flagValueIsMissing,
+  flagValues,
   loadAppServices,
   optionalFlag,
   parseFlags,
@@ -24,18 +26,9 @@ import type { CommandHandler } from './types.js';
 
 const exportUsage =
   'Usage: introspection export [--format json|gno|all] [--dest DIRECTORY] [--json]';
-const trueFlagValue = 'true';
 const valueRequiredFlags = ['format', 'dest'] as const;
 
 type ValueRequiredFlag = (typeof valueRequiredFlags)[number];
-
-const flagValues = (
-  flags: Map<string, ReadonlyArray<string>>,
-  key: string,
-): ReadonlyArray<string> => flags.get(key) ?? [];
-
-const flagValueIsMissing = (value: string): boolean =>
-  value.length === 0 || value === trueFlagValue;
 
 const assertValueRequiredFlag = (
   flags: Map<string, ReadonlyArray<string>>,

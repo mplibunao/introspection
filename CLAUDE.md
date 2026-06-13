@@ -6,7 +6,7 @@ This repo is MP's personal CLI substrate for governed markdown records. The v1 p
 
 - Exec plans: `docs/exec-plans/`.
 - Seed decisions: `docs/design-input/introspection-seed-2026-06-01.md`.
-- Tech-debt records: run `introspection prime --type tech-debt`; records live under `docs/records/tech-debt/`.
+- Tech-debt records: run `introspection records list --type tech-debt`; records live under `docs/records/tech-debt/`.
 - Oracle pre-plan critique: `investigations/oracle-preplan-critique-2026-06-01.md`.
 
 ## Tooling posture

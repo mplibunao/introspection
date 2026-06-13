@@ -1,6 +1,13 @@
 import type { CheckFinding, CheckReport } from '../core/validation.js';
 import type { RepoContext, VocabularyTerm } from '../config/repo-context.js';
-import type { PrimeFilters, PrimeSelection } from '../core/prime-selector.js';
+import type {
+  Orientation,
+  OrientationLifecycleCount,
+  OrientationPolicyDoc,
+  OrientationRecordTypeCount,
+  OrientationVocabularyCount,
+} from '../core/orientation.js';
+import type { RecordListFilters, RecordListResult } from '../core/record-list-selector.js';
 import type { ExportServiceResult } from '../export/export-service.js';
 import type {
   DeleteVocabularyTermResult,
@@ -89,7 +96,7 @@ const flagLabel = (enabled: boolean, label: string): string | null => {
   return null;
 };
 
-const primeFilterSummary = (filters: Required<PrimeFilters>): string => {
+const recordListFilterSummary = (filters: Required<RecordListFilters>): string => {
   const parts = [
     filterValues('type', filters.types),
     filterValues('status', filters.statuses),
@@ -106,7 +113,7 @@ const primeFilterSummary = (filters: Required<PrimeFilters>): string => {
   return parts.join('; ');
 };
 
-const primeLimitSuffix = (selection: PrimeSelection): string => {
+const recordListLimitSuffix = (selection: RecordListResult): string => {
   if (!selection.limit.clamped) {
     return `limit ${selection.limit.effectiveLimit}`;
   }
@@ -114,10 +121,10 @@ const primeLimitSuffix = (selection: PrimeSelection): string => {
   return `limit ${selection.limit.effectiveLimit} (clamped from ${selection.limit.requestedLimit})`;
 };
 
-const primeRecordLine = (record: PrimeSelection['records'][number]): string =>
+const recordListLine = (record: RecordListResult['records'][number]): string =>
   `- ${record.id} [${record.recordType}/${record.status}] ${record.title} (${record.path}; updated ${record.updatedAt}; age ${record.ageDays}d)`;
 
-const unreadableRecordWarning = (selection: PrimeSelection): ReadonlyArray<string> => {
+const unreadableRecordWarning = (selection: RecordListResult): ReadonlyArray<string> => {
   if (selection.failedReadCount === 0) {
     return [];
   }
@@ -127,17 +134,92 @@ const unreadableRecordWarning = (selection: PrimeSelection): ReadonlyArray<strin
   ];
 };
 
-const primeHuman = (repo: RepoContext, selection: PrimeSelection): string => {
+const recordListHuman = (repo: RepoContext, selection: RecordListResult): string => {
   const header = [
-    `Prime for ${repo.repoKey}/${repo.repoSlug}: showing ${selection.shownRecordCount} of ${selection.totalMatchingRecordCount} matching record(s); omitted ${selection.omittedRecordCount}; ${primeLimitSuffix(selection)}.`,
-    `Scope: ${primeFilterSummary(selection.filters)}.`,
+    `Records for ${repo.repoKey}/${repo.repoSlug}: showing ${selection.shownRecordCount} of ${selection.totalMatchingRecordCount} matching record(s); omitted ${selection.omittedRecordCount}; ${recordListLimitSuffix(selection)}.`,
+    `Scope: ${recordListFilterSummary(selection.filters)}.`,
   ];
   const records = selection.records.flatMap((record) => [
-    primeRecordLine(record),
+    recordListLine(record),
     `  ${record.summary}`,
   ]);
 
   return `${[...header, ...unreadableRecordWarning(selection), ...records].join(newline)}${newline}`;
+};
+
+const orientationTypeLine = (entry: OrientationRecordTypeCount): string => {
+  const statuses = entry.statuses
+    .map((status) => `${status.status}[${status.kind}] ${status.count}`)
+    .join('; ');
+
+  return `- ${entry.recordType}: ${entry.total} (${statuses})`;
+};
+
+const recordTypeLines = (
+  recordTypes: ReadonlyArray<OrientationRecordTypeCount>,
+): ReadonlyArray<string> => {
+  if (recordTypes.length === 0) {
+    return ['By type: none.'];
+  }
+
+  return ['By type:', ...recordTypes.map(orientationTypeLine)];
+};
+
+const orientationLifecycleLine = (lifecycle: ReadonlyArray<OrientationLifecycleCount>): string => {
+  if (lifecycle.length === 0) {
+    return 'By lifecycle: none.';
+  }
+
+  const parts = lifecycle.map((entry) => `${entry.kind} ${entry.count}`).join('; ');
+
+  return `By lifecycle: ${parts}.`;
+};
+
+const orientationVocabularyLine = (
+  vocabulary: ReadonlyArray<OrientationVocabularyCount>,
+): string => {
+  const parts = vocabulary.map((entry) => `${entry.status} ${entry.count}`).join('; ');
+
+  return `Vocabulary: ${parts}.`;
+};
+
+const policyDocLine = (doc: OrientationPolicyDoc): string => {
+  if (doc.appliesTo.length === 0) {
+    return `- ${doc.name} (${doc.relativePath})`;
+  }
+
+  return `- ${doc.name} (${doc.relativePath}; applies to: ${doc.appliesTo.join(', ')})`;
+};
+
+const policyDocLines = (docs: ReadonlyArray<OrientationPolicyDoc>): ReadonlyArray<string> => {
+  if (docs.length === 0) {
+    return ['Policy docs: none.'];
+  }
+
+  return ['Policy docs:', ...docs.map(policyDocLine)];
+};
+
+const orientationHuman = (repo: RepoContext, orientation: Orientation): string => {
+  const header = [
+    `Orientation for ${repo.repoKey}/${repo.repoSlug}.`,
+    `Repo root: ${repo.repoRoot}`,
+    `Records root: ${repo.recordsRoot}`,
+    `Records: ${orientation.totalRecordCount} total; ${orientation.unreadableRecordCount} unreadable.`,
+  ];
+  const summary = [
+    orientationLifecycleLine(orientation.lifecycle),
+    orientationVocabularyLine(orientation.vocabulary),
+  ];
+  const next = ['Next:', ...orientation.nextCommands.map((command) => `- ${command}`)];
+  const lines = [
+    ...header,
+    ...recordTypeLines(orientation.recordTypes),
+    ...summary,
+    ...policyDocLines(orientation.policyDocs),
+    ...next,
+  ];
+
+  return `${lines.join(newline)}${newline}`;
 };
 
 const vocabularyTermLine = (term: VocabularyTerm): string =>
@@ -177,8 +259,9 @@ export {
   checkHuman,
   errorHuman,
   exportHuman,
-  primeHuman,
+  orientationHuman,
   recordHuman,
+  recordListHuman,
   repairHuman,
   transitionHuman,
   vocabularyCascadeHuman,

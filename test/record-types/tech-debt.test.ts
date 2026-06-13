@@ -220,10 +220,10 @@ describe('tech-debt machine tags and projections', () => {
     );
   });
 
-  it('returns stable JSON-friendly prime and export projections', () => {
+  it('returns stable JSON-friendly record-list and export projections', () => {
     const fixture = record();
 
-    assert.deepStrictEqual(techDebtRecordType.summarizeForPrime(fixture, validationContext), {
+    assert.deepStrictEqual(techDebtRecordType.summarizeForList(fixture, validationContext), {
       id: 'BP-TD-007',
       title: 'Future stack-neutral React preset',
       recordType: 'tech-debt',

@@ -143,7 +143,7 @@ describe('static record type registry', () => {
 });
 
 describe('tech-debt record type contract', () => {
-  it('models lifecycle, derived tags, prime summary, and export projection', () => {
+  it('models lifecycle, derived tags, record-list summary, and export projection', () => {
     const record = techDebtRecord();
 
     assert.deepStrictEqual(techDebtRecordType.validate(record, {}), []);
@@ -153,7 +153,7 @@ describe('tech-debt record type contract', () => {
       'status/open',
       'visibility/local-only',
     ]);
-    assert.deepStrictEqual(techDebtRecordType.summarizeForPrime(record, {}), {
+    assert.deepStrictEqual(techDebtRecordType.summarizeForList(record, {}), {
       id: 'BP-TD-007',
       title: 'Future stack-neutral React preset',
       recordType: 'tech-debt',

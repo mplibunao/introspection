@@ -127,7 +127,7 @@ interface LifecycleDefinition {
   readonly transitions: ReadonlyArray<LifecycleTransitionDefinition>;
 }
 
-interface PrimeSummary {
+interface RecordListSummary {
   readonly id: string;
   readonly title: string;
   readonly recordType: string;
@@ -156,7 +156,10 @@ interface RecordType<Frontmatter extends BaseRecordFrontmatter = BaseRecordFront
   readonly lifecycle: LifecycleDefinition;
   derivedTags(record: ParsedRecord<Frontmatter>, context: ValidationContext): ReadonlyArray<string>;
   validate(record: ParsedRecord<Frontmatter>, context: ValidationContext): ReadonlyArray<Finding>;
-  summarizeForPrime(record: ParsedRecord<Frontmatter>, context: ValidationContext): PrimeSummary;
+  summarizeForList(
+    record: ParsedRecord<Frontmatter>,
+    context: ValidationContext,
+  ): RecordListSummary;
   projectForExport(record: ParsedRecord<Frontmatter>, context: ValidationContext): ExportDocument;
 }
 
@@ -460,7 +463,7 @@ export type {
   LifecycleStatusKind,
   LifecycleTransitionDefinition,
   ParsedRecord,
-  PrimeSummary,
+  RecordListSummary,
   RecordType,
   RecordTypeRegistry,
   Resolution,

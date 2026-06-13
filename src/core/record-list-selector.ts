@@ -1,22 +1,22 @@
 import { IntrospectionError } from './errors.js';
 import type {
   ParsedRecord,
-  PrimeSummary,
+  RecordListSummary,
   RecordTypeRegistry,
   ValidationContext,
 } from './record-type-types.js';
 
-interface PrimeCandidateRecord {
+interface RecordListCandidate {
   readonly record: ParsedRecord;
   readonly relativePath: string;
 }
 
-interface PrimeLimitDefaults {
+interface RecordListLimitDefaults {
   readonly defaultLimit?: number;
   readonly hardLimit?: number;
 }
 
-interface PrimeFilters {
+interface RecordListFilters {
   readonly types?: ReadonlyArray<string>;
   readonly statuses?: ReadonlyArray<string>;
   readonly tags?: ReadonlyArray<string>;
@@ -25,18 +25,18 @@ interface PrimeFilters {
   readonly all?: boolean;
 }
 
-interface SelectPrimeOptions {
-  readonly records: ReadonlyArray<PrimeCandidateRecord>;
+interface SelectRecordListOptions {
+  readonly records: ReadonlyArray<RecordListCandidate>;
   readonly registry: RecordTypeRegistry;
   readonly context: ValidationContext;
   readonly now: Date;
   readonly requestedLimit?: number;
-  readonly limits?: PrimeLimitDefaults;
-  readonly filters?: PrimeFilters;
+  readonly limits?: RecordListLimitDefaults;
+  readonly filters?: RecordListFilters;
   readonly failedReadCount?: number;
 }
 
-interface PrimeLimitReport {
+interface RecordListLimitReport {
   readonly defaultLimit: number;
   readonly hardLimit: number;
   readonly requestedLimit?: number;
@@ -44,22 +44,22 @@ interface PrimeLimitReport {
   readonly clamped: boolean;
 }
 
-interface PrimeSelectedRecord extends PrimeSummary {
+interface RecordListItem extends RecordListSummary {
   readonly path: string;
   readonly number: number;
   readonly ageDays: number;
 }
 
-interface PrimeSelection {
+interface RecordListResult {
   readonly generatedAt: string;
-  readonly filters: Required<PrimeFilters>;
-  readonly limit: PrimeLimitReport;
+  readonly filters: Required<RecordListFilters>;
+  readonly limit: RecordListLimitReport;
   readonly scannedRecordCount: number;
   readonly failedReadCount: number;
   readonly totalMatchingRecordCount: number;
   readonly shownRecordCount: number;
   readonly omittedRecordCount: number;
-  readonly records: ReadonlyArray<PrimeSelectedRecord>;
+  readonly records: ReadonlyArray<RecordListItem>;
 }
 
 const builtInDefaultLimit = 10;
@@ -70,7 +70,7 @@ const leftBeforeRight = -1;
 const uniqueSorted = (values: ReadonlyArray<string> | undefined): ReadonlyArray<string> =>
   Object.freeze([...new Set(values ?? [])].sort((left, right) => left.localeCompare(right)));
 
-const normalizedFilters = (filters: PrimeFilters = {}): Required<PrimeFilters> => ({
+const normalizedFilters = (filters: RecordListFilters = {}): Required<RecordListFilters> => ({
   types: uniqueSorted(filters.types),
   statuses: uniqueSorted(filters.statuses),
   tags: uniqueSorted(filters.tags),
@@ -134,7 +134,7 @@ const hasAllTags = (recordTags: ReadonlyArray<string>, filters: ReadonlyArray<st
 };
 
 const statusKind = (
-  candidate: PrimeCandidateRecord,
+  candidate: RecordListCandidate,
   registry: RecordTypeRegistry,
 ): 'active' | 'terminal' | 'unknown' => {
   const recordType = registry.get(candidate.record.frontmatter.record_type);
@@ -143,11 +143,11 @@ const statusKind = (
   return status?.kind ?? 'unknown';
 };
 
-const terminalRecordsAllowed = (filters: Required<PrimeFilters>): boolean =>
+const terminalRecordsAllowed = (filters: Required<RecordListFilters>): boolean =>
   filters.includeTerminal || filters.all || filters.statuses.length > 0;
 
 const matchesCurrentRepo = (
-  candidate: PrimeCandidateRecord,
+  candidate: RecordListCandidate,
   context: ValidationContext,
 ): boolean => {
   if (!context.repoKey) {
@@ -158,10 +158,10 @@ const matchesCurrentRepo = (
 };
 
 const candidateMatches = (
-  candidate: PrimeCandidateRecord,
+  candidate: RecordListCandidate,
   registry: RecordTypeRegistry,
   context: ValidationContext,
-  filters: Required<PrimeFilters>,
+  filters: Required<RecordListFilters>,
 ): boolean => {
   const { frontmatter } = candidate.record;
 
@@ -186,9 +186,9 @@ const candidateMatches = (
   );
 };
 
-type PrimeRecordComparator = (left: PrimeSelectedRecord, right: PrimeSelectedRecord) => number;
+type RecordListComparator = (left: RecordListItem, right: RecordListItem) => number;
 
-const compareUpdatedAt: PrimeRecordComparator = (left, right) => {
+const compareUpdatedAt: RecordListComparator = (left, right) => {
   const leftUpdatedAt = parseTimestamp(left.updatedAt);
   const rightUpdatedAt = parseTimestamp(right.updatedAt);
 
@@ -207,19 +207,19 @@ const compareUpdatedAt: PrimeRecordComparator = (left, right) => {
   return 0;
 };
 
-const compareRecordType: PrimeRecordComparator = (left, right) =>
+const compareRecordType: RecordListComparator = (left, right) =>
   left.recordType.localeCompare(right.recordType);
 
-const compareNumber: PrimeRecordComparator = (left, right) => left.number - right.number;
+const compareNumber: RecordListComparator = (left, right) => left.number - right.number;
 
-const compareId: PrimeRecordComparator = (left, right) => left.id.localeCompare(right.id);
+const compareId: RecordListComparator = (left, right) => left.id.localeCompare(right.id);
 
-const comparePath: PrimeRecordComparator = (left, right) => left.path.localeCompare(right.path);
+const comparePath: RecordListComparator = (left, right) => left.path.localeCompare(right.path);
 
 const firstNonZero = (values: ReadonlyArray<number>): number =>
   values.find((value) => value !== 0) ?? 0;
 
-const compareSelectedRecords = (left: PrimeSelectedRecord, right: PrimeSelectedRecord): number =>
+const compareSelectedRecords = (left: RecordListItem, right: RecordListItem): number =>
   firstNonZero([
     compareUpdatedAt(left, right),
     compareRecordType(left, right),
@@ -229,14 +229,14 @@ const compareSelectedRecords = (left: PrimeSelectedRecord, right: PrimeSelectedR
   ]);
 
 const toSelectedRecord = (
-  candidate: PrimeCandidateRecord,
+  candidate: RecordListCandidate,
   registry: RecordTypeRegistry,
   context: ValidationContext,
   now: Date,
-): PrimeSelectedRecord => {
+): RecordListItem => {
   const summary = registry
     .require(candidate.record.frontmatter.record_type)
-    .summarizeForPrime(candidate.record, context);
+    .summarizeForList(candidate.record, context);
 
   return {
     ...summary,
@@ -265,6 +265,11 @@ const assertLimitOrder = (defaultLimit: number, hardLimit: number): void => {
   }
 };
 
+/*
+ * The limit error codes and labels keep the prime.* namespace on purpose: they
+ * name the still-existing [prime] config block (default_limit/hard_limit).
+ * WI-R02 renames that block to [records.list] and should rename these in lockstep.
+ */
 const validateConfiguredLimits = (defaultLimit: number, hardLimit: number): void => {
   assertPositiveInteger(defaultLimit, 'prime.default_limit');
   assertPositiveInteger(hardLimit, 'prime.hard_limit');
@@ -275,7 +280,7 @@ const limitReport = (
   defaultLimit: number,
   hardLimit: number,
   requestedLimit: number | undefined,
-): PrimeLimitReport => {
+): RecordListLimitReport => {
   const desiredLimit = requestedLimit ?? defaultLimit;
   const baseReport = {
     defaultLimit,
@@ -293,8 +298,8 @@ const limitReport = (
 
 const resolveLimits = (
   requestedLimit: number | undefined,
-  defaults: PrimeLimitDefaults = {},
-): PrimeLimitReport => {
+  defaults: RecordListLimitDefaults = {},
+): RecordListLimitReport => {
   const defaultLimit = defaults.defaultLimit ?? builtInDefaultLimit;
   const hardLimit = defaults.hardLimit ?? builtInHardLimit;
 
@@ -307,7 +312,7 @@ const resolveLimits = (
   return limitReport(defaultLimit, hardLimit, requestedLimit);
 };
 
-const selectPrimeRecords = (options: SelectPrimeOptions): PrimeSelection => {
+const selectRecordList = (options: SelectRecordListOptions): RecordListResult => {
   const filters = normalizedFilters(options.filters);
   const limit = resolveLimits(options.requestedLimit, options.limits);
   const matchingRecords = options.records
@@ -329,13 +334,13 @@ const selectPrimeRecords = (options: SelectPrimeOptions): PrimeSelection => {
   };
 };
 
-export { selectPrimeRecords };
+export { selectRecordList };
 export type {
-  PrimeCandidateRecord,
-  PrimeFilters,
-  PrimeLimitDefaults,
-  PrimeLimitReport,
-  PrimeSelectedRecord,
-  PrimeSelection,
-  SelectPrimeOptions,
+  RecordListCandidate,
+  RecordListFilters,
+  RecordListItem,
+  RecordListLimitDefaults,
+  RecordListLimitReport,
+  RecordListResult,
+  SelectRecordListOptions,
 };

@@ -28,7 +28,13 @@ interface AppServices {
 
 const flagPrefix = '--';
 const flagPrefixLength = 2;
-const truthyFlagValue = 'true';
+/*
+ * Sentinel stored when a flag appears without consuming a following token. A NUL
+ * byte cannot occur in a process argument, so a bare `--flag` is always
+ * distinguishable from an explicit `--flag value`: valued flags treat it as "no
+ * value supplied" and boolean flags reject any real value.
+ */
+const valuelessFlagMarker = `${String.fromCodePoint(0)}__valueless__`;
 const lastItemIndex = -1;
 const evidenceKinds: ReadonlyArray<EvidenceRefKind> = [
   'commit',
@@ -68,7 +74,7 @@ const flagValueAt = (
     return { consumedNext: true, value: next };
   }
 
-  return { consumedNext: false, value: truthyFlagValue };
+  return { consumedNext: false, value: valuelessFlagMarker };
 };
 
 const nextFlagIndex = (index: number, consumedNext: boolean): number => {
@@ -124,7 +130,7 @@ const flagValue = (flags: Map<string, ReadonlyArray<string>>, key: string): stri
 const requiredFlag = (flags: Map<string, ReadonlyArray<string>>, key: string): string => {
   const value = flagValue(flags, key);
 
-  if (!value || value === truthyFlagValue) {
+  if (!value || value === valuelessFlagMarker) {
     throw new IntrospectionError('cli.flag.required', `Missing required --${key} value.`, {
       flag: key,
     });
@@ -139,12 +145,16 @@ const optionalFlag = (
 ): string | undefined => {
   const value = flagValue(flags, key);
 
-  if (!value || value === truthyFlagValue) {
+  if (!value || value === valuelessFlagMarker) {
     return;
   }
 
   return value;
 };
+
+// A boolean flag is set when it is present and valueless (its only value is the marker).
+const booleanFlag = (flags: Map<string, ReadonlyArray<string>>, key: string): boolean =>
+  flagValues(flags, key).includes(valuelessFlagMarker);
 
 const cliUsageError = (
   usage: string,
@@ -154,6 +164,97 @@ const cliUsageError = (
 
 const cliArgumentError = (message: string, details: ErrorDetails = {}): IntrospectionError =>
   new IntrospectionError('cli.argument.invalid', message, details);
+
+/*
+ * --root is a universal repo-discovery override accepted by every repo-scoped
+ * command, so the shared flag helpers always allow it and always treat it as
+ * value-required. Both helpers below are intentionally command-agnostic so the
+ * generic importer (WI-R03) can reuse them without re-deriving flag plumbing.
+ */
+const rootFlag = 'root';
+
+interface CommandFlagSpec {
+  readonly valued?: ReadonlyArray<string>;
+  readonly boolean?: ReadonlyArray<string>;
+}
+
+const flagValueIsMissing = (value: string): boolean =>
+  value.length === 0 || value === valuelessFlagMarker;
+
+const assertValuedFlagHasValue = (
+  flags: Map<string, ReadonlyArray<string>>,
+  key: string,
+  usage: string,
+): void => {
+  if (flagValues(flags, key).some(flagValueIsMissing)) {
+    throw cliArgumentError(`--${key} requires a value.`, { flag: key, usage });
+  }
+};
+
+/*
+ * The flag parser consumes the next non-flag token as a flag value, so a boolean
+ * flag followed by a token silently captures it (`--all false` => ['false']) and
+ * is then read as disabled. The valueless sentinel cannot be supplied on the
+ * command line, so rejecting any other value catches both `--all false` and
+ * `--all true`, keeping boolean semantics honest for every command that reuses
+ * this helper.
+ */
+const assertBooleanFlagHasNoValue = (
+  flags: Map<string, ReadonlyArray<string>>,
+  key: string,
+  usage: string,
+): void => {
+  if (flagValues(flags, key).some((value) => value !== valuelessFlagMarker)) {
+    throw cliArgumentError(`--${key} does not take a value.`, { flag: key, usage });
+  }
+};
+
+/*
+ * Rejects any flag outside the command's declared spec (plus the universal
+ * --root), and asserts value-required flags actually carry a value. This is the
+ * generic unknown-flag gate the reshape adds; parseFlags otherwise accepts
+ * unknown flags silently.
+ */
+const assertKnownFlags = (
+  flags: Map<string, ReadonlyArray<string>>,
+  spec: CommandFlagSpec,
+  usage: string,
+): void => {
+  const valued = new Set<string>([rootFlag, ...(spec.valued ?? [])]);
+  const booleans = new Set<string>(spec.boolean ?? []);
+  const allowed = new Set<string>([...valued, ...booleans]);
+
+  for (const key of flags.keys()) {
+    if (!allowed.has(key)) {
+      throw cliArgumentError(`Unknown flag --${key}.`, { flag: key, usage });
+    }
+  }
+
+  for (const key of valued) {
+    assertValuedFlagHasValue(flags, key, usage);
+  }
+
+  for (const key of booleans) {
+    assertBooleanFlagHasNoValue(flags, key, usage);
+  }
+};
+
+/*
+ * Returns a context whose cwd is overridden by --root when present, so config
+ * discovery starts from the caller-specified path instead of the process cwd.
+ */
+const contextWithRootOverride = (
+  context: CliCommandContext,
+  flags: Map<string, ReadonlyArray<string>>,
+): CliCommandContext => {
+  const root = optionalFlag(flags, rootFlag);
+
+  if (root) {
+    return { ...context, cwd: root };
+  }
+
+  return context;
+};
 
 const assertNoExtraPositionals = (positionals: ReadonlyArray<string>, usage: string): void => {
   if (positionals.length > 0) {
@@ -295,12 +396,16 @@ const failure = (error: unknown, exitCode = 1): CommandFailure => ({
 });
 
 export {
+  assertKnownFlags,
   assertNoExtraPositionals,
+  booleanFlag,
   cliArgumentError,
   cliUsageError,
+  contextWithRootOverride,
   evidenceRefFromFlags,
   failure,
   flagValue,
+  flagValueIsMissing,
   flagValues,
   isoTimestamp,
   loadAppServices,
@@ -314,4 +419,4 @@ export {
   requiredFlag,
   validationContextFor,
 };
-export type { AppServices, FlagParseResult };
+export type { AppServices, CommandFlagSpec, FlagParseResult };

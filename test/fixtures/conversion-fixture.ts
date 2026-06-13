@@ -7,7 +7,7 @@ import type {
   BaseRecordFrontmatter,
   JsonSchemaDocument,
   LifecycleDefinition,
-  PrimeSummary,
+  RecordListSummary,
   RecordType,
 } from '../../src/core/record-type-types.js';
 
@@ -67,7 +67,7 @@ const conversionFixtureRecordType: RecordType<ConversionFixtureFrontmatter> = {
     `visibility/${record.frontmatter.visibility}`,
   ],
   validate: (record) => validateLifecycleEvidence(conversionFixtureRecordType, record),
-  summarizeForPrime: (record): PrimeSummary => ({
+  summarizeForList: (record): RecordListSummary => ({
     id: record.frontmatter.id,
     title: record.frontmatter.title,
     recordType: record.frontmatter.record_type,

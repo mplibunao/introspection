@@ -8,6 +8,7 @@ import { cliArgumentError, failure, normalizeError } from './helpers.js';
 import { idsCommand } from './ids.js';
 import { primeCommand } from './prime.js';
 import { recordCommand } from './record.js';
+import { recordsCommand } from './records.js';
 import type {
   CliCommandContext,
   CliRunOptions,
@@ -22,6 +23,7 @@ const commandHandlers = new Map<string, CommandHandler>([
   ['prime', primeCommand],
   ['export', exportCommand],
   ['record', recordCommand],
+  ['records', recordsCommand],
   ['ids', idsCommand],
   ['vocab', vocabCommand],
 ]);
@@ -30,7 +32,8 @@ const helpText = `introspection ${packageVersion}
 
 Commands:
   check                         Validate records.
-  prime                         Show bounded active record context.
+  prime                         Show repo orientation: record counts, policy docs, vocabulary.
+  records list                  List bounded active records with filters.
   export                        Write disposable generated export artifacts.
   record create tech-debt       Create a tech-debt record.
   record transition             Move a record through its lifecycle.

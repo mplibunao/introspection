@@ -3,7 +3,8 @@ import type {
   RepoContext,
   VocabularyTerm,
 } from '../config/repo-context.js';
-import type { PrimeSelection } from '../core/prime-selector.js';
+import type { Orientation } from '../core/orientation.js';
+import type { RecordListResult } from '../core/record-list-selector.js';
 import type { ExportServiceResult } from '../export/export-service.js';
 import type {
   DeleteVocabularyTermResult,
@@ -69,10 +70,10 @@ const repairJson = (result: DuplicateRepairResult): string =>
     },
   });
 
-const primeJson = (repo: RepoContext, selection: PrimeSelection): string =>
+const recordListJson = (repo: RepoContext, selection: RecordListResult): string =>
   renderJson({
     ok: true,
-    prime: {
+    list: {
       repo: {
         key: repo.repoKey,
         slug: repo.repoSlug,
@@ -80,6 +81,20 @@ const primeJson = (repo: RepoContext, selection: PrimeSelection): string =>
         recordsRoot: repo.recordsRoot,
       },
       ...selection,
+    },
+  });
+
+const orientationJson = (repo: RepoContext, orientation: Orientation): string =>
+  renderJson({
+    ok: true,
+    orientation: {
+      repo: {
+        key: repo.repoKey,
+        slug: repo.repoSlug,
+        root: repo.repoRoot,
+        recordsRoot: repo.recordsRoot,
+      },
+      ...orientation,
     },
   });
 
@@ -110,8 +125,9 @@ export {
   checkJson,
   errorJson,
   exportJson,
-  primeJson,
+  orientationJson,
   recordJson,
+  recordListJson,
   repairJson,
   transitionJson,
   vocabularyCascadeJson,
