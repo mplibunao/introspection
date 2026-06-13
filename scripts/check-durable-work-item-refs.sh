@@ -5,7 +5,7 @@ MATCHES="$(mktemp)"
 PATH_MATCHES="$(mktemp)"
 trap 'rm -f "$MATCHES" "$PATH_MATCHES"' EXIT
 
-set -- schemas scripts src test
+set -- CLAUDE.md .introspection schemas scripts src test package.json pnpm-workspace.yaml 'tsconfig*.json' vite.config.ts vitest.config.ts stryker.config.mjs docs ':!docs/exec-plans' ':!docs/design-input' ':!docs/reports'
 # W[I] still matches WI at runtime, but keeps this guard from flagging its own source.
 WORK_ITEM_LABEL_PATTERN='W[I]-[0-9][0-9]([0-9])?([^0-9]|$)'
 

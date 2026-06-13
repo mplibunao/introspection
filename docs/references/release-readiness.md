@@ -29,4 +29,4 @@ If npm cannot create a Trusted Publishing binding until a package exists, use a 
 
 ## Backpressure consumption
 
-Backpressure should stay on the local link until WI-19 explicitly switches it to a published strict-catalog pin. Backpressure's release-age cooldown still applies to the main package and all platform packages.
+Backpressure should stay on the local link until the release explicitly switches it to a published strict-catalog pin. Backpressure's release-age cooldown still applies to the main package and all platform packages.

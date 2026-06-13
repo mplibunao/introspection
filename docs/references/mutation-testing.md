@@ -4,7 +4,7 @@ Mutation testing measures whether tests catch behavior changes, not only whether
 
 ## Scope
 
-WI-20 targets the record kernel only:
+The mutation gate targets the record kernel only:
 
 - store and atomic write mechanics under `src/store/`
 - ID allocation and duplicate repair
@@ -60,7 +60,7 @@ Avoid score chasing. A stronger assertion should protect a meaningful contract s
 
 `STRYKER_SWEEP=1` keeps the broader kernel glob for investigation. The sweep may include files that are not part of the default quality gate yet; promote those files only after the report is updated.
 
-Always-excluded files include type-only contracts, command shells, importers, presenters, retrieval adapters, and package/build surfaces. The kernel mutation pass should not drift into unrelated WI-13 or WI-14 behavior.
+Always-excluded files include type-only contracts, command shells, importers, presenters, retrieval adapters, and package/build surfaces. The kernel mutation pass should not drift into unrelated packaging or adoption behavior.
 
 ## Reports
 

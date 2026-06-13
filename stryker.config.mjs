@@ -1,8 +1,8 @@
 /** @type {import('@stryker-mutator/api/core').PartialStrykerOptions} */
 
 /*
- * Default behavioral targets: exact source files with WI-20 worker evidence and
- * survivor triage in docs/reports/mutation/2026-06-12-wi-20-record-kernel.md.
+ * Default behavioral targets: exact source files with mutation worker evidence and
+ * survivor triage under docs/reports/mutation/.
  * Keep this list aligned with that report; use STRYKER_SWEEP=1 for broader
  * investigation before promoting a new file into the default quality gate.
  */
@@ -29,7 +29,7 @@ const DEFAULT_BEHAVIORAL_TARGETS = [
 /*
  * Always excluded: type-only contracts, test files, command shells, importers,
  * presenters, retrieval adapters, package metadata, and build-time utilities.
- * WI-20 targets the record kernel, so CLI/package/adoption surfaces stay out of
+ * The mutation gate targets the record kernel, so CLI/package/adoption surfaces stay out of
  * both the default gate and the full mutation sweep.
  */
 const UNIVERSAL_MUTATION_EXCLUSIONS = [

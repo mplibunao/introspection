@@ -10,17 +10,17 @@ Install Bun 1.3.11 or newer in adopting repos. Node still matters for this repo'
 
 ## Local-link dogfood path
 
-For WI-14, backpressure should consume this repo from local bits, not npm:
+Backpressure should consume this repo from local bits, not npm:
 
 1. Run `corepack pnpm install` in this repo.
 2. Run `corepack pnpm build` in this repo.
 3. Add the local package to the adopting repo with a local link or `file:` dependency that points at this checkout.
 4. Run the adopting repo's `introspection check` command through its normal `pnpm check` flow.
 
-The adopting repo must not keep a second active tracker once records become the source of truth. WI-14 owns that cutover for backpressure.
+The adopting repo must not keep a second active tracker once records become the source of truth.
 
 ## Publishing guidance
 
-Publishing is intentionally outside WI-13. WI-19 publishes `@mplibunao/introspection` and the platform packages through the Changesets release flow described in [release readiness](references/release-readiness.md).
+Publishing is intentionally separate from packaging. The release flow publishes `@mplibunao/introspection` and the platform packages through Changesets, described in [release readiness](references/release-readiness.md).
 
-Backpressure uses strict dependency cooldowns. A newly published package cannot be consumed there until it passes the configured release-age window, unless WI-19 adds a scoped cooldown exclusion that the package manager supports. Do not bypass that policy with postinstall downloads or ad-hoc global installs.
+Backpressure uses strict dependency cooldowns. A newly published package cannot be consumed there until it passes the configured release-age window, unless the release adds a scoped cooldown exclusion that the package manager supports. Do not bypass that policy with postinstall downloads or ad-hoc global installs.
