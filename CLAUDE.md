@@ -4,7 +4,7 @@ This repo is MP's personal CLI substrate for governed markdown records. The v1 p
 
 ## Start here
 
-- Active bootstrap plan: `docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md`.
+- Exec plans: `docs/exec-plans/`.
 - Seed decisions: `docs/design-input/introspection-seed-2026-06-01.md`.
 - Tech-debt records: run `introspection prime --type tech-debt`; records live under `docs/records/tech-debt/`.
 - Oracle pre-plan critique: `investigations/oracle-preplan-critique-2026-06-01.md`.
@@ -23,6 +23,5 @@ This repo is MP's personal CLI substrate for governed markdown records. The v1 p
 
 - Keep active exec plans under `docs/exec-plans/active/`; move completed plans under `docs/exec-plans/completed/`.
 - `AGENTS.md` is a symlink to this file. Update this file, not the symlink.
-- Follow the active bootstrap plan for the current work item. Do not implement later work items unless MP explicitly asks.
 - At session start for repo work, run `introspection prime` when record context is relevant. Before finishing record or doc changes, run `introspection check`.
 - Use a hard cutover when behavior changes. Do not add backwards-compatibility shims unless MP asks.

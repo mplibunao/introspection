@@ -18,6 +18,6 @@ path = "CLAUDE.md"
 applies_to = ["agent-workflow", "tech-debt"]
 
 [[policy_docs]]
-name = "Active bootstrap plan"
-path = "docs/exec-plans/active/introspection-v1-bootstrap-2026-06-10.md"
-applies_to = ["tech-debt", "work-items"]
+name = "Exec plan lifecycle"
+path = "docs/exec-plans/index.md"
+applies_to = ["agent-workflow"]
