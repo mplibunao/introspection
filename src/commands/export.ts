@@ -12,11 +12,11 @@ import { exportJson } from '../presenters/json.js';
 import { recordTypeRegistry } from '../record-types/registry.js';
 
 import {
+  assertKnownFlags,
   assertNoExtraPositionals,
   cliArgumentError,
+  contextWithRootOverride,
   failure,
-  flagValueIsMissing,
-  flagValues,
   loadAppServices,
   optionalFlag,
   parseFlags,
@@ -25,25 +25,7 @@ import {
 import type { CommandHandler } from './types.js';
 
 const exportUsage =
-  'Usage: introspection export [--format json|gno|all] [--dest DIRECTORY] [--json]';
-const valueRequiredFlags = ['format', 'dest'] as const;
-
-type ValueRequiredFlag = (typeof valueRequiredFlags)[number];
-
-const assertValueRequiredFlag = (
-  flags: Map<string, ReadonlyArray<string>>,
-  key: ValueRequiredFlag,
-): void => {
-  if (flagValues(flags, key).some(flagValueIsMissing)) {
-    throw cliArgumentError(`--${key} requires a value.`, { flag: key, usage: exportUsage });
-  }
-};
-
-const assertValueRequiredFlags = (flags: Map<string, ReadonlyArray<string>>): void => {
-  for (const key of valueRequiredFlags) {
-    assertValueRequiredFlag(flags, key);
-  }
-};
+  'Usage: introspection export [--format json|gno|all] [--dest DIRECTORY] [--root PATH] [--json]';
 
 const parseFormat = (value: string | undefined): ExportFormat => {
   if (!value) {
@@ -107,8 +89,8 @@ const exportCommand: CommandHandler = async ({ args, context }) => {
   try {
     const { flags, positionals } = parseFlags(args);
     assertNoExtraPositionals(positionals, exportUsage);
-    assertValueRequiredFlags(flags);
-    const services = await loadAppServices(context);
+    assertKnownFlags(flags, { valued: ['format', 'dest'] }, exportUsage);
+    const services = await loadAppServices(contextWithRootOverride(context, flags));
     const result = await writeExports(
       parseFormat(optionalFlag(flags, 'format')),
       exportOptions(flags, context, services),
