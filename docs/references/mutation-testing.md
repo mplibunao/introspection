@@ -52,7 +52,7 @@ Classify every surviving mutant before acting:
 | Equivalent | Document the rationale in the sweep report. | A mutation changes internal sorting before a later stable sort produces the same public order. |
 | Trivial | Document the rationale in the sweep report. | Killing it would require pinning an error sentence when the stable contract is the error code. |
 
-Avoid score chasing. A stronger assertion should protect a meaningful contract such as a returned finding code, derived tag, file safety invariant, exported path, or bounded prime output.
+Avoid score chasing. A stronger assertion should protect a concrete contract such as a returned finding code or a path safety invariant, not internal formatting details.
 
 ## Default target policy
 

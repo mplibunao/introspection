@@ -10,7 +10,7 @@ current_hash="$(shasum -a 256 .vale.ini | awk '{print $1}')"
 hash_file="styles/.vale-sync.sha256"
 sync_required=false
 
-for style_dir in styles/Google styles/write-good styles/alex; do
+for style_dir in styles/ai-tells styles/ai-tells-commits styles/Google styles/write-good styles/alex; do
   if [ ! -d "$style_dir" ]; then
     sync_required=true
     break

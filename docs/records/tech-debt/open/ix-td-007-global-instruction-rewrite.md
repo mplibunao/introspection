@@ -28,7 +28,7 @@ Replace the reflexive tracker-first persistence rule in claude-toolkit global in
 
 ## Why deferred
 
-The replacement should preserve the invariant that accepted unresolved gaps get persisted, while excluding brainstorms, rejected ideas, same-session tasks, and owner-doc duplicates. It intentionally waits until dogfood proves the introspection path.
+The replacement must record accepted unresolved gaps and exclude brainstorms, rejected ideas, same-session tasks, and owner-doc duplicates. It intentionally waits until dogfood proves the introspection path.
 
 ## Revisit trigger
 

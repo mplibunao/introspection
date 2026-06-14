@@ -15,5 +15,7 @@ COMMIT_EDITMSG
 .introspection/.locks/
 .introspection/generated/
 styles/Google/
+styles/ai-tells/
+styles/ai-tells-commits/
 styles/alex/
 styles/write-good/
