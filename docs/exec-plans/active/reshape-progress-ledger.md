@@ -141,9 +141,9 @@ Branches (stacked for review):
 - **Checks:** independent runs on vale 3.14.1. introspection `pnpm prose` is 0 and `pnpm check` is green, including 232 tests and a clean build. backpressure `pnpm prose` is 0 and the 32 version-pin tests pass.
 - **Issues:** none open. The accepted residual is the CI cache-key P2 above.
 
-## Open follow-ups discovered this session (cross-cutting, NOT reshape work items)
+## Cross-cutting follow-ups discovered this session (NOT reshape work items)
 
-These surfaced in mid-session discussion with MP. Decisions and rationale are captured here (committed, survives compaction) so a post-compaction agent executes them without re-litigating. They also exist as task-board items #13-#17. Execution order is MP's call; a suggested order is at the end.
+These surfaced in mid-session discussion with MP. Decisions and rationale are captured here (committed, survives compaction) so a post-compaction agent executes them without re-litigating. They exist as task-board items #13-#20. Only #17 is still open. The rest are DONE, each with a full gate entry above; the bullets below keep each item's original decision and rationale. Execution order is MP's call; a suggested order is at the end.
 
 - **#13: DONE (commit `aa945da`; full gate ledger in the "Follow-up #13" entry above).** Adopted exactly as decided. Original rationale: Today `export.ts` never calls `assertKnownFlags`, so a typo'd flag (such as `--frmat`) is silently swallowed and export runs with the default format, a real footgun. `export` has a fixed known flag set (`format`, `dest`, `json`) with no passthrough, so adopting is safe and also adds `--root`; it brings export in line with `records list`/`import`. Low risk pre-release.
 - **#14: DONE (commit `7116fad`; resolved via the store-safe path check, NOT a split; full gate ledger in the "Follow-up #14" entry above).** Original rationale: WI-R03's refactor added the shared `canonicalRecordRelativePath` import to `record.ts`, pushing it to 16 imports (over oxlint `import/max-dependencies`); the engineer suppressed it via the top-of-file `eslint-disable`. MP's posture: hard lint ceilings are errors to fix by decomposition (not suppress), with no other such disables in this PRODUCTION codebase (contrast #15 for the deliberate test-file exception).
