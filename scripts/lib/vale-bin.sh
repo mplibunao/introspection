@@ -7,23 +7,24 @@ resolve_vale() {
     return 0
   fi
 
-  if command -v vale >/dev/null 2>&1; then
-    candidate="$(command -v vale)"
-    if "$candidate" --version >/dev/null 2>&1; then
-      printf '%s
-' "$candidate"
+  # Prefer the mise-pinned binary; mise.toml is the authoritative version source.
+  if command -v mise >/dev/null 2>&1; then
+    mise_vale="$(mise which vale 2>/dev/null)"
+    if [ -n "$mise_vale" ] && [ -x "$mise_vale" ]; then
+      printf '%s\n' "$mise_vale"
       return 0
     fi
   fi
 
-  mise_vale="${HOME:-}/.local/share/mise/installs/vale/3.9.6/vale"
-  if [ -x "$mise_vale" ]; then
-    printf '%s
-' "$mise_vale"
-    return 0
+  # Last-resort: accept whatever vale is on PATH (e.g. a system-wide install).
+  if command -v vale >/dev/null 2>&1; then
+    candidate="$(command -v vale)"
+    if "$candidate" --version >/dev/null 2>&1; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
   fi
 
-  printf '%s
-' "Unable to find a runnable Vale binary. Install Vale 3.9.6 with mise or set VALE_BIN." >&2
+  printf '%s\n' "Unable to find a runnable Vale binary. Install Vale with mise (version is pinned in mise.toml) or set VALE_BIN." >&2
   return 1
 }
