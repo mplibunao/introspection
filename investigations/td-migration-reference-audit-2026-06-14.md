@@ -199,13 +199,12 @@ High-level order so verification stays clean. File-level detail is in the matrix
 
 ### WI-R06 decisions required before execution
 
-1. **`repo_key` (stutter).** introspection's tech-debt type prefix is the literal
-   `TD`, and taste-distillery's native canon prefix is also `TD` (`TD-CARD`,
-   `TD-DEBT`, `TD-SPECIMEN`, `TD-BASELINE`). If WI-R06 sets `repo_key = "TD"`,
-   canonical IDs become `TD-TD-001` (the dry-run below shows this). Decide: accept
-   `TD-TD-NNN`, or pick a non-stuttering key such as `TASTE`, `TDST`, or `DSTL`
-   (pattern `^[A-Z][A-Z0-9]{1,15}$`), giving IDs such as `TASTE-TD-001`. This blocks
-   the final canonical IDs.
+1. **`repo_key` (DECIDED: `TASTE`, MP 2026-06-14).** introspection's tech-debt type
+   prefix is the literal `TD`, and taste-distillery's native canon prefix is also
+   `TD` (`TD-CARD`, `TD-DEBT`, `TD-SPECIMEN`, `TD-BASELINE`). Setting `repo_key = "TD"`
+   would have produced stuttering `TD-TD-NNN` IDs, so MP chose the non-stuttering key
+   `TASTE`. WI-R06 runs `introspection init` with the `--repo-key TASTE` flag, giving
+   canonical IDs `TASTE-TD-001` through `TASTE-TD-014`.
 2. **Records-pointer target for generic links.** Most generic "tech-debt tracker"
    links (R1-R4, R7-R10, R14-R16, R19, R24) are "track follow-up here" pointers,
    best served by a records index or `introspection records list` guidance; the
