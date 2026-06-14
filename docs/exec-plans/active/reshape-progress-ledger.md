@@ -23,7 +23,7 @@ Commit SHAs are in the introspection repo unless a prefix marks another repo. `b
 | WI-R01 | Split prime into orientation and records list | DONE | `5c80d48`, `13dc836`, `74a0b2f` |
 | WI-R02 | Rename config to `[records.list]` (hard cutover) | DONE | `69746a7`, `bp de2f523` |
 | WI-R03 | Generic `introspection import` | DONE | `cce9a2a`, `389f00a` |
-| WI-R04 | taste-distillery migration manifest and reference audit | PENDING | |
+| WI-R04 | taste-distillery migration manifest and reference audit | DONE | `td e5d64a3`, `d5b161b` |
 | WI-R05 | Close WI-19 release and backpressure pin | PARKED (MP npm publish) | |
 | WI-R06 | Migrate taste-distillery tracker on the local binary | PENDING | |
 | WI-R07 | Reframe adoption docs playbook | PARKED | |
@@ -188,8 +188,18 @@ Commit SHAs are in the introspection repo unless a prefix marks another repo. `b
 - **Commits:** claude-toolkit `eed9b9c`, on branch `introspection/wi18-deferral-rule`. That commit also swept in unrelated `.codex/config.toml` drift through a sync hook, which MP chose to leave.
 - **Issues:** none open.
 
+## WI-R04: prepare taste-distillery migration input and reference audit (DONE)
+
+- **Decision/rationale:** produce the reviewable migration input before WI-R06 mutates any tracker state. The deliverables are a normalized import manifest for the 14 legacy `TD-DEBT-NNN` entries and a reference audit that maps every legacy reference to a WI-R06 disposition. WI-R04 itself mutates nothing existing.
+- **Implementation (`pair` agent):** authored the manifest from TD's `tech-debt-tracker.md` plus the code and docs each entry cites, using `import --print-schema` for the required shape. The manifest is `repo_key`-agnostic and uses `id_policy: preserve`, so the legacy numbers and IDs are kept as tracker provenance through `source.tracker_path` and per-entry `legacy_id`. All 14 entries carry the three required tech-debt headings with concise `source_refs`, and the sparse entries carry reasonable inferred values flagged inline. The agent oriented on TD as governed canon through its router.
+- **Review gate:** `context_builder` review (chat `wi-r04-review-E35043`) found one P1 plus two P2 and one P3 finding; the follow-up converged. P1: the audit as first placed broke TD `just docs`, because check-docs requires every hand-authored content-dir markdown to be index-reachable and parses an inline bracket-and-parenthesis example as a real link. Resolved by moving the audit out of TD into introspection `investigations/`, leaving the `repo_key`-agnostic manifest as the only TD artifact (a `.json`, which check-docs ignores). P2: a historical ADR link was reclassified to de-link rather than repoint, and two entries gained `plan` provenance refs. The orchestrator confirmed the break directly by running TD `just docs`.
+- **Refactor gate:** `context_builder` analysis (chat `wi-r04-refactor-9B7F11`) over two iterations. Consolidated the audit's duplicated rewrite inventory into one canonical action matrix with derived views, and split the tail into settled decisions versus open WI-R06 blockers. It also tightened the 16 manifest labels to concise identifiers, so imported record data no longer duplicates the audit, and added a WI-R06 runbook. A re-enumeration confirmed no reference was lost across 27 files.
+- **Checks:** the orchestrator independently reproduced the import dry-run against a freshly scaffolded temp repo, which returned `ok: true` for all 14 entries with zero findings and no writes. TD `just docs` and `just prose` are green, and introspection `pnpm prose` and `check:durable-refs` pass. Scope stayed clean in both repos.
+- **Commits:** taste-distillery `e5d64a3` (manifest) and introspection `d5b161b` (audit).
+- **Issues and action items:** the `repo_key` choice is the one open WI-R06 blocker. With `repo_key` set to `TD`, canonical IDs render `TD-TD-NNN`, the repo key `TD` plus the tech-debt type abbreviation `TD`. MP decides at WI-R06 whether to accept the stutter or pick a non-stuttering key such as `TASTE`. A second smaller WI-R06 input is the generic records-pointer target for rewritten live references. Both sit in the audit's "WI-R06 decisions required" section.
+
 ### Remaining work order
 
-The status table above carries each item's state, so this lists only the forward sequence. WI-R04 then WI-R06 come next, the taste-distillery migration on the local binary, with #17's backpressure tech-debt record filed during the lint phase. WI-R05/R07/R09 stay PARKED behind MP's npm Trusted Publishing browser step (see Autonomy boundaries above). WI-R12 mutation testing runs last, once introspection logic is stable.
+The status table above carries each item's state, so this lists only the forward sequence. WI-R06 comes next, the taste-distillery tracker migration on the local binary, consuming the WI-R04 manifest and audit; its first blocker is the `repo_key` decision above. #17's backpressure tech-debt record is filed during the lint phase. WI-R05/R07/R09 stay PARKED behind MP's npm Trusted Publishing browser step (see Autonomy boundaries above). WI-R12 mutation testing runs last, once introspection logic is stable.
 
 ## WI-R12: Mutation-test reshaped surfaces (added 2026-06-13, MP request) (pending, runs late)
