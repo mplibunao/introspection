@@ -1,0 +1,75 @@
+{
+  "ok": true,
+  "orientation": {
+    "repo": {
+      "key": "BP",
+      "slug": "backpressure",
+      "root": "<REPO_ROOT>",
+      "recordsRoot": "<REPO_ROOT>/docs/records"
+    },
+    "generatedAt": "2026-06-12T00:00:00Z",
+    "totalRecordCount": 3,
+    "unreadableRecordCount": 0,
+    "recordTypes": [
+      {
+        "recordType": "tech-debt",
+        "total": 3,
+        "statuses": [
+          {
+            "status": "done",
+            "kind": "terminal",
+            "count": 1
+          },
+          {
+            "status": "open",
+            "kind": "active",
+            "count": 2
+          }
+        ]
+      }
+    ],
+    "lifecycle": [
+      {
+        "kind": "active",
+        "count": 2
+      },
+      {
+        "kind": "terminal",
+        "count": 1
+      }
+    ],
+    "vocabulary": [
+      {
+        "status": "approved",
+        "count": 2
+      },
+      {
+        "status": "provisional",
+        "count": 0
+      },
+      {
+        "status": "rejected",
+        "count": 0
+      }
+    ],
+    "policyDocs": [
+      {
+        "name": "Contributing",
+        "relativePath": "docs/policy/contributing.md",
+        "appliesTo": [
+          "tech-debt"
+        ]
+      },
+      {
+        "name": "Lifecycle",
+        "relativePath": "docs/policy/lifecycle.md",
+        "appliesTo": []
+      }
+    ],
+    "nextCommands": [
+      "introspection records list — review active records before planning",
+      "introspection check — validate records before finishing",
+      "introspection record create tech-debt — capture newly deferred work"
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "import": {
+    "repo": {
+      "key": "BP",
+      "slug": "backpressure",
+      "root": "<REPO_ROOT>",
+      "recordsRoot": "<REPO_ROOT>/docs/records"
+    },
+    "written": true,
+    "record_type": "tech-debt",
+    "id_policy": "preserve",
+    "entries": [
+      {
+        "record_id": "BP-TD-007",
+        "number": 7,
+        "status": "open",
+        "path": "tech-debt/open/bp-td-007.md",
+        "legacy_id": "TD-007",
+        "findings": []
+      },
+      {
+        "record_id": "BP-TD-001",
+        "number": 1,
+        "status": "rejected",
+        "path": "tech-debt/rejected/bp-td-001.md",
+        "legacy_id": "TD-001",
+        "findings": []
+      },
+      {
+        "record_id": "BP-TD-002",
+        "number": 2,
+        "status": "superseded",
+        "path": "tech-debt/superseded/bp-td-002.md",
+        "legacy_id": "TD-002",
+        "findings": []
+      }
+    ]
+  }
+}

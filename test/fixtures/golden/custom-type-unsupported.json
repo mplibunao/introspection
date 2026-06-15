@@ -1,0 +1,19 @@
+{
+  "ok": false,
+  "checkedRecordCount": 1,
+  "failedReadCount": 0,
+  "findings": [
+    {
+      "code": "record_type.unsupported",
+      "severity": "error",
+      "message": "Record type \"decision\" is not registered.",
+      "path": [
+        "record_type"
+      ],
+      "remediation": "Use a registered record_type (tech-debt) or add the type to the static registry.",
+      "source": "record",
+      "recordId": "BP-DEC-001",
+      "recordPath": "decision/open/bp-dec-001.md"
+    }
+  ]
+}

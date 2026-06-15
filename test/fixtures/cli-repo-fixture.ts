@@ -16,12 +16,23 @@ const timestamp = '2026-06-01T00:00:00Z';
 /*
  * Options for spinning up a temporary repo in CLI integration tests. Policy
  * docs are off by default since most command tests do not exercise that path.
+ * recordListLimits overrides the [records.list] limits; it defaults to the small
+ * 1/2 limits most command tests rely on, so existing callers are unaffected,
+ * while characterization fixtures can request a backpressure-shaped 5/20 repo.
  */
+interface RecordListLimits {
+  readonly defaultLimit: number;
+  readonly hardLimit: number;
+}
+
 interface WithTempRepoOptions {
   readonly tmpDirPrefix: string;
   readonly vocabularyTerms: ReadonlyArray<VocabularyTerm>;
   readonly policyDocs?: boolean;
+  readonly recordListLimits?: RecordListLimits;
 }
+
+const defaultRecordListLimits: RecordListLimits = { defaultLimit: 1, hardLimit: 2 };
 
 const term = (tag: string, status: VocabularyTerm['status'] = 'approved'): VocabularyTerm => ({
   tag,
@@ -34,7 +45,8 @@ const term = (tag: string, status: VocabularyTerm['status'] = 'approved'): Vocab
   },
 });
 
-const buildConfigToml = (policyDocs: boolean): string => {
+const buildConfigToml = (options: WithTempRepoOptions): string => {
+  const recordListLimits = options.recordListLimits ?? defaultRecordListLimits;
   const base = [
     'schema_version = 1',
     'repo_key = "BP"',
@@ -47,12 +59,12 @@ const buildConfigToml = (policyDocs: boolean): string => {
     'visibility = "local-only"',
     '',
     '[records.list]',
-    'default_limit = 1',
-    'hard_limit = 2',
+    `default_limit = ${recordListLimits.defaultLimit}`,
+    `hard_limit = ${recordListLimits.hardLimit}`,
     '',
   ].join('\n');
 
-  if (!policyDocs) {
+  if (!(options.policyDocs ?? false)) {
     return base;
   }
 
@@ -80,10 +92,7 @@ const seedRepo = async (root: string, options: WithTempRepoOptions): Promise<voi
 
   await mkdir(path.join(root, '.introspection'), { recursive: true });
   await mkdir(path.join(root, 'docs/records'), { recursive: true });
-  await writeFile(
-    path.join(root, '.introspection/config.toml'),
-    buildConfigToml(options.policyDocs ?? false),
-  );
+  await writeFile(path.join(root, '.introspection/config.toml'), buildConfigToml(options));
   await writeFile(
     path.join(root, '.introspection/vocabulary.toml'),
     renderVocabularyToml(vocabulary),

@@ -13,6 +13,13 @@ const toolIgnorePatterns = [
   'node_modules/**',
   'prompt-exports/**',
   'styles/**',
+  /*
+   * Generated golden capture artifacts: byte-identical to stableJson() in
+   * test/fixtures/golden.ts so the characterization harness can diff them. The
+   * formatter must not reformat them, or assert.strictEqual(actual, expected)
+   * would break against a hand-formatted copy.
+   */
+  'test/fixtures/golden/**',
 ];
 
 export default defineConfig({

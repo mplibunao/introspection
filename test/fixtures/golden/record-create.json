@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "record": {
+    "id": "BP-TD-001",
+    "path": "tech-debt/open/bp-td-001.md",
+    "record_type": "tech-debt",
+    "status": "open",
+    "title": "Baseline created record"
+  }
+}

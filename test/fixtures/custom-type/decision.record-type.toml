@@ -1,0 +1,53 @@
+# Aspirational custom record-type manifest for the substrate reshape.
+#
+# This fixture documents the DESIRED data-only type declaration that IX-SR-04
+# (config v2 [[records.types]]), IX-SR-05 (manifest schema + loader), and
+# IX-SR-06 (manifest compiler) will make real. It does NOT work against the
+# current CLI: today a custom type requires editing src/record-types/registry.ts,
+# which the reshape removes in favor of compiling declarations like this one.
+#
+# The binding manifest schema is owned by IX-SR-05; treat the field names below
+# as illustrative intent, not a committed contract.
+
+key = "decision"
+title = "Decision record"
+category = "decision"
+surface = "markdown"
+
+[metadata]
+source = "frontmatter"
+schema = ".introspection/schemas/decision.schema.json"
+
+[identity]
+strategy = "repo-scoped-sequence"
+prefix = "DEC"
+
+[layout]
+strategy = "directory-status"
+root = "docs/records"
+
+[lifecycle]
+initial_status = "open"
+
+[[lifecycle.statuses]]
+status = "open"
+kind = "active"
+
+[[lifecycle.statuses]]
+status = "accepted"
+kind = "terminal"
+
+[[lifecycle.statuses]]
+status = "rejected"
+kind = "terminal"
+
+[[lifecycle.transitions]]
+from = "open"
+to = "accepted"
+
+[[lifecycle.transitions]]
+from = "open"
+to = "rejected"
+
+[headings]
+required = ["## Context", "## Decision", "## Consequences"]

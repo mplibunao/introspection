@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "repair": {
+    "oldId": "BP-TD-100",
+    "newId": "BP-TD-101",
+    "oldPath": "tech-debt/open/duplicate.md",
+    "newPath": "tech-debt/open/bp-td-101.md",
+    "bodyOccurrences": []
+  }
+}

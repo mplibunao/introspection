@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "export": {
+    "destinationDirectory": "<REPO_ROOT>/.introspection/generated",
+    "manifestPath": "<REPO_ROOT>/.introspection/generated/manifest.json",
+    "recordsExported": 3,
+    "manifest": {
+      "schema_version": 1,
+      "generated_at": "2026-06-12T00:00:00Z",
+      "generator": {
+        "name": "@mplibunao/introspection",
+        "version": "0.0.0"
+      },
+      "repo": {
+        "key": "BP",
+        "slug": "backpressure"
+      },
+      "records_root": "<REPO_ROOT>/docs/records",
+      "exports": [
+        {
+          "kind": "json",
+          "path": "records.json",
+          "record_count": 3
+        },
+        {
+          "kind": "gno-markdown",
+          "path": "gno-markdown",
+          "record_count": 3,
+          "sha256": "611917084e1f4778c40a46256d7451c58f193e169109a7a1403fd8e9571dcf69"
+        }
+      ]
+    }
+  }
+}

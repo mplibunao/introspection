@@ -1,0 +1,67 @@
+{
+  "ok": true,
+  "list": {
+    "repo": {
+      "key": "BP",
+      "slug": "backpressure",
+      "root": "<REPO_ROOT>",
+      "recordsRoot": "<REPO_ROOT>/docs/records"
+    },
+    "generatedAt": "2026-06-12T00:00:00Z",
+    "filters": {
+      "types": [],
+      "statuses": [],
+      "tags": [],
+      "paths": [],
+      "includeTerminal": false,
+      "all": false
+    },
+    "limit": {
+      "defaultLimit": 5,
+      "hardLimit": 20,
+      "effectiveLimit": 5,
+      "clamped": false
+    },
+    "scannedRecordCount": 3,
+    "failedReadCount": 0,
+    "totalMatchingRecordCount": 2,
+    "shownRecordCount": 2,
+    "omittedRecordCount": 0,
+    "records": [
+      {
+        "id": "BP-TD-001",
+        "title": "Old active record",
+        "recordType": "tech-debt",
+        "status": "open",
+        "updatedAt": "2026-06-01T00:00:00Z",
+        "summary": "Old active record summary.",
+        "tags": [
+          "record/tech-debt",
+          "repo/backpressure",
+          "status/open",
+          "visibility/local-only"
+        ],
+        "path": "tech-debt/open/bp-td-001.md",
+        "number": 1,
+        "ageDays": 11
+      },
+      {
+        "id": "BP-TD-002",
+        "title": "New active record",
+        "recordType": "tech-debt",
+        "status": "open",
+        "updatedAt": "2026-06-10T00:00:00Z",
+        "summary": "New active record summary.",
+        "tags": [
+          "record/tech-debt",
+          "repo/backpressure",
+          "status/open",
+          "visibility/local-only"
+        ],
+        "path": "tech-debt/open/bp-td-002.md",
+        "number": 2,
+        "ageDays": 2
+      }
+    ]
+  }
+}
