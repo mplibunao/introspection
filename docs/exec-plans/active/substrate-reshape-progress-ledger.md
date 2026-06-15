@@ -39,7 +39,7 @@ Commit SHAs are in the introspection repo unless a prefix marks another repo (`b
 | ID | Item | Size | Status | Commits |
 | --- | --- | --- | --- | --- |
 | IX-SR-00 | Land revised plan and dispose superseded active plans | S | DONE | `bb1aa9e` |
-| IX-SR-01 | Characterization fixtures and Effect guardrail targets | M | PENDING | |
+| IX-SR-01 | Characterization fixtures and Effect guardrail targets | M | DONE | `0a9afbb` |
 | IX-SR-02 | Cut the CLI runtime to Effect 4 command architecture | L | PENDING | |
 | IX-SR-03 | Introduce the Effect service graph and typed domain errors | XL | PENDING | |
 | IX-SR-04 | Config v2 with explicit type declarations (additive) | L | PENDING | |
@@ -64,6 +64,16 @@ Commit SHAs are in the introspection repo unless a prefix marks another repo (`b
 ## Per-item detail
 
 Entries are appended here as each item passes its gates and commits.
+
+### IX-SR-01: Characterization fixtures and Effect guardrail targets (DONE)
+
+- **Build:** `pair` agent (opus). The new golden-master harness (`test/fixtures/golden.ts`) parses each command's `--json` stdout and normalizes the per-run temp repo root, including its macOS realpath form. It diffs the result against committed snapshots under `test/fixtures/golden/`, and `UPDATE_GOLDEN=1 pnpm test` regenerates them. The characterization suite (`test/cli/golden-characterization.test.ts`) pins current output for the eight commands the plan names, on a backpressure-shaped records-only repo. A custom-type fixture (`test/cli/custom-type-pending.test.ts`) pins today's `record_type.unsupported` rejection as a real before-and-after baseline and adds an `it.skip` spec for the desired manifest-driven flow. The guardrail doc (`docs/references/effect-substrate-guardrails.md`) records the rewrite targets and links to the plan instead of restating it. The existing `cli-repo-fixture.ts` gained an optional record-list-limits override, so the new fixture can mirror backpressure's 5/20 config without disturbing existing callers.
+- **Review gate:** one analysis on chat `ix-sr-01-review-182392` plus a follow-up; converged clean. Three findings, all about holes in the safety net, were fixed. The goldens had pinned only stdout, so a later CLI could leak output to stderr undetected; the harness now asserts empty stderr in one place. Most tests had asserted only the exit code before the snapshot, so `UPDATE_GOLDEN=1` could have blessed a regression; each golden now carries a semantic pre-assertion. The export golden had pinned the summary but not the written artifacts; it now verifies that the manifest and records file parse and that the GNO projection holds the expected count. The follow-up review found no remaining substantive issue.
+- **Refactor gate:** explore scouts skipped, since the surface is small and self-contained. One analysis on chat `ix-sr-review-5912CE` plus a follow-up; converged clean. Three behavior-preserving cleanups landed. A records-list comment that wrongly implied a newest-first sort was corrected. The skipped custom-type spec now uses the shared `run` helper and the shared vocabulary term. The ambiguous `listDefaults` option was renamed to `recordListLimits`. The orchestrator declined two findings with rationale: consolidating `bin.test.ts` helpers is deferred to the IX-SR-02 rewrite that replaces that file, and sharing the import-manifest fixture is declined so the golden baseline owns its input. Goldens stayed byte-identical (sha256 confirmed).
+- **Checks:** the orchestrator ran the full `pnpm check` independently after each gate, green every time. The final run was green across all seven stages, from durable-refs through prose, with 243 passing tests and 1 skipped. The build produced three platform binaries and `introspection check` cleared 16 records. The orchestrator's independent check also caught a gap the agent's partial run had missed: `vp check` flagged four golden snapshots, so the fix excludes `test/fixtures/golden/**` from the formatter through the established generated-output ignore list in `vite.config.ts`, leaving the harness to own those bytes.
+- **Commits:** `0a9afbb` for the fixtures and guardrail doc, plus this ledger-record commit.
+- **Issues:** none open. The one `it.skip` spec intentionally documents unbuilt manifest behavior and is unskipped across IX-SR-04 through IX-SR-06.
+- **Action items for MP:** none.
 
 ### IX-SR-00: Land revised plan and dispose superseded active plans (DONE)
 
