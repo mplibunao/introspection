@@ -38,7 +38,7 @@ Commit SHAs are in the introspection repo unless a prefix marks another repo (`b
 
 | ID | Item | Size | Status | Commits |
 | --- | --- | --- | --- | --- |
-| IX-SR-00 | Land revised plan and dispose superseded active plans | S | PENDING | |
+| IX-SR-00 | Land revised plan and dispose superseded active plans | S | DONE | `bb1aa9e` |
 | IX-SR-01 | Characterization fixtures and Effect guardrail targets | M | PENDING | |
 | IX-SR-02 | Cut the CLI runtime to Effect 4 command architecture | L | PENDING | |
 | IX-SR-03 | Introduce the Effect service graph and typed domain errors | XL | PENDING | |
@@ -64,3 +64,14 @@ Commit SHAs are in the introspection repo unless a prefix marks another repo (`b
 ## Per-item detail
 
 Entries are appended here as each item passes its gates and commits.
+
+### IX-SR-00: Land revised plan and dispose superseded active plans (DONE)
+
+- **Work:** `engineer` agent (sonnet:high). It moved the stopped plain-TypeScript reshape spec and its progress ledger into `completed/` with `git mv`, preserving history. The absorbed bootstrap plan moved there too. Each moved file received a superseded or absorbed banner that points to the active plan with corrected relative paths. The bootstrap WI-19 npm thread was folded into IX-SR-17 as two done-when items. First, a TD-CARD-037 branch-protection re-verification gates the trusted publish path. Second, a mise `npm:` backend spike confirms the published binary is mise-consumable, with a `ubi:` GitHub-release fallback. Both plan indexes were refreshed.
+- **Review gate:** a code-oriented review does not apply, because this item changed only documentation. The review ran instead as the prose gate plus orchestrator verification. I read each banner and confirmed its relative paths resolve. The IX-SR-17 fold is accurate and well-formed. The acceptance criterion holds: only the active plan remains in `active/`, and no remaining plan presents a permanent implicit `tech-debt` default. The active plan's transitional default is framed correctly.
+- **Refactor gate:** not applicable, because no code changed.
+- **Checks:** `introspection check` green over 16 records. `pnpm prose` reported 0 errors and 0 warnings over 48 files.
+- **Out-of-scope edits (orchestrator-reviewed, accepted):** the agent swapped the `scripts/prose-files.sh` exclusion path from `active/` to `completed/` so the bootstrap plan's existing prose exclusion follows the move. It also restructured one VerbTricolon in this ledger with meaning preserved. Both are verified correct.
+- **Commits:** `bb1aa9e` for the disposition, plus this ledger-record commit.
+- **Issues:** none open.
+- **Action items for MP:** none.
