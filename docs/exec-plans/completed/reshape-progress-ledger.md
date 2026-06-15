@@ -1,5 +1,7 @@
 # introspection v1 reshape: exec-plan progress report
 
+> **SUPERSEDED. Historical record only.** This is the progress ledger for the stopped plain-TypeScript reshape plan (`introspection-v1-reshape-2026-06-13.md`). The active plan is the Effect-native reshape and its ledger is [`substrate-reshape-progress-ledger.md`](../active/substrate-reshape-progress-ledger.md). This file is kept for historical reference; do not update it.
+
 Progress report for the orchestrate-loop execution of plan `introspection-v1-reshape-2026-06-13.md`. The status table below indexes every work unit. Each work unit, whether a plan work item or a follow-up, has one uniform entry with the same fields, and the entry records whether each workflow gate actually ran.
 
 Branches (stacked for review):

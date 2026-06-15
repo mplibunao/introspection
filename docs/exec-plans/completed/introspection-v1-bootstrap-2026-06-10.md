@@ -1,5 +1,7 @@
 # introspection v1 bootstrap: Plan
 
+> **ABSORBED. Complete.** WI-01 through WI-18, WI-20, and WI-21 are complete (see status entries and commit SHAs throughout). The remaining npm-release thread (WI-19: npm Trusted Publishing, backpressure published pin, release-age handling, TD-CARD-037 ruleset re-verification, and mise-consumability spike) is absorbed into IX-SR-17 of the active plan [`introspection-substrate-reshape-2026-06-14.md`](../active/introspection-substrate-reshape-2026-06-14.md). This file is kept as historical reference.
+
 ## Goal
 
 Bootstrap the `introspection` repo: a governed, typed, agent-maintained record substrate (markdown + frontmatter source of truth, Effect/TS CLI, record-type plugin contract, conversion lifecycle, controlled tag vocabulary), and adopt it in `backpressure` as the first customer by migrating its tech-debt tracker. The seed's DECIDED items are settled constraints; this plan resolves the OPEN items into an executable build sequence.

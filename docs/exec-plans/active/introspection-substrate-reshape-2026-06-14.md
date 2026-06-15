@@ -586,6 +586,8 @@ Estimate scale: **S** is a focused change. **M** is several files plus tests. **
 - Backpressure moves from `file:../introspection` to a strict catalog pin.
 - Backpressure handles pnpm release-age policy through a scoped exclusion or by waiting out the configured age window.
 - Backpressure `pnpm check` passes on the published package.
+- TD-CARD-037 branch-protection ruleset is re-verified active (`repo.protection.verify`) before the release workflow is trusted to auto-publish; branch protection plus CI is the safety boundary for the OIDC publish path.
+- Published binary is verified as mise-consumable via the `npm:` backend (spike mise install against the new pin); if the `npm:` backend cannot resolve the platform optional-package binary, a GitHub-release binary asset is published as the fallback, consumed via mise's `ubi:` backend; IX-SR-20 steady-state taste CI depends on a published and mise-consumable binary.
 - Release readiness docs reflect config v2, explicit presets, and the Effect runtime.
 
 **Key files.** `.github/workflows/release.yml`; `.changeset/*`; `docs/references/release-readiness.md`; `package.json`; `packages/introspection-*/*`; `backpressure/package.json`; `backpressure/pnpm-workspace.yaml`.

@@ -1,5 +1,7 @@
 # introspection v1 reshape: prime/records-list split and generic import CLI, adoption guide and release close-out
 
+> **SUPERSEDED.** Do not execute. This plan stopped mid-execution and was superseded by the Effect-native reshape. The active source of truth is [`introspection-substrate-reshape-2026-06-14.md`](../active/introspection-substrate-reshape-2026-06-14.md). The items that completed here (WI-R01 through WI-R04, WI-R08, WI-R10 through WI-R11, and follow-ups #13 through #16, #18 through #20, GI) are historical record only. The remaining items (WI-R05 through WI-R07, WI-R09, WI-R12, #17) were absorbed into the new plan or left for MP to action. Do not execute any work items here.
+
 > **Execution status** lives in the companion gate ledger [`reshape-progress-ledger.md`](./reshape-progress-ledger.md), updated per work item after each commit. This file is the spec (what to build and why); the ledger is the running record of what landed, which review and refactor gates ran.
 
 ## Goal
