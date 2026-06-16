@@ -1,11 +1,8 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { deterministicSearch } from './retrieval-provider.js';
-import type {
-  RetrievalDocument,
-  RetrievalProvider,
-  RetrievalQuery,
-  RetrievalResult,
-} from './retrieval-provider.js';
+
+type RetrievalDocument = Parameters<typeof deterministicSearch>[0][number];
+type RetrievalQuery = Parameters<typeof deterministicSearch>[1];
+type RetrievalResult = ReturnType<typeof deterministicSearch>[number];
 
 interface GnoSearchHit {
   readonly id?: string;
@@ -17,6 +14,11 @@ interface GnoSearchHit {
 
 interface GnoSearchClient {
   readonly search: (query: RetrievalQuery) => Promise<ReadonlyArray<GnoSearchHit>>;
+}
+
+interface RetrievalProvider {
+  readonly name: string;
+  search(query: RetrievalQuery): Promise<ReadonlyArray<RetrievalResult>>;
 }
 
 const documentFromHit = (hit: GnoSearchHit): RetrievalDocument => ({

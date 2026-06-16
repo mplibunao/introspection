@@ -1,22 +1,16 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { assert, describe, it } from '@effect/vitest';
 
-import { loadAppServices, validationContextFor } from '../../src/commands/helpers.js';
+import { loadAppServices, validationContextFor } from '../../src/cli/app-services.js';
 import { runCli } from '../../src/commands/index.js';
 import type { CliRunResult } from '../../src/commands/types.js';
 import { IntrospectionError } from '../../src/core/errors.js';
 import { runImport as runImportService } from '../../src/import/import-service.js';
 import { loadManifest } from '../../src/import/manifest.js';
-import type { ImportManifest } from '../../src/import/manifest.js';
 import { createMarkdownRecordStore } from '../../src/store/markdown-record-store.js';
-import type {
-  MarkdownRecordReadResult,
-  MarkdownRecordStore,
-} from '../../src/store/markdown-record-store.js';
 import {
   errorCodeFromStdout,
   now,
@@ -26,6 +20,12 @@ import {
   term,
   withTempRepo,
 } from '../fixtures/cli-repo-fixture.js';
+
+type ImportManifest = Awaited<ReturnType<typeof loadManifest>>;
+type MarkdownRecordStore = ReturnType<typeof createMarkdownRecordStore>;
+type MarkdownRecordReadResult = Awaited<
+  ReturnType<MarkdownRecordStore['listRecordResults']>
+>[number];
 
 const importRepoOptions = {
   tmpDirPrefix: 'introspection-import-cli-',
@@ -39,7 +39,10 @@ interface ManifestEntry {
   readonly legacy_id?: string;
   readonly title: string;
   readonly status: string;
-  readonly sections: ReadonlyArray<{ readonly heading: string; readonly body: string }>;
+  readonly sections: ReadonlyArray<{
+    readonly heading: string;
+    readonly body: string;
+  }>;
   readonly resolution?: unknown;
   readonly source_refs?: unknown;
   readonly tags?: ReadonlyArray<string>;
@@ -64,15 +67,27 @@ interface ImportPayload {
       readonly status: string;
       readonly path: string;
       readonly legacy_id?: string;
-      readonly findings: ReadonlyArray<{ readonly code: string; readonly severity: string }>;
+      readonly findings: ReadonlyArray<{
+        readonly code: string;
+        readonly severity: string;
+      }>;
     }>;
   };
 }
 
-const sections = (): ReadonlyArray<{ readonly heading: string; readonly body: string }> => [
+const sections = (): ReadonlyArray<{
+  readonly heading: string;
+  readonly body: string;
+}> => [
   { heading: '## Problem', body: 'The preset is framework-specific.' },
-  { heading: '## Why deferred', body: 'The current phase has a smaller scope.' },
-  { heading: '## Revisit trigger', body: 'Revisit when a second framework adopts it.' },
+  {
+    heading: '## Why deferred',
+    body: 'The current phase has a smaller scope.',
+  },
+  {
+    heading: '## Revisit trigger',
+    body: 'Revisit when a second framework adopts it.',
+  },
 ];
 
 const openEntry = (number: number, legacyId: string): ManifestEntry => ({
@@ -89,7 +104,9 @@ const rejectedEntry = (number: number, legacyId: string): ManifestEntry => ({
   title: `Rejected item ${legacyId}`,
   status: 'rejected',
   sections: sections(),
-  resolution: { rationale: 'The direction was settled elsewhere, so this is closed.' },
+  resolution: {
+    rationale: 'The direction was settled elsewhere, so this is closed.',
+  },
 });
 
 const supersededEntry = (number: number, legacyId: string): ManifestEntry => ({
@@ -111,7 +128,10 @@ const manifestWith = (
   schema_version: 1,
   record_type: 'tech-debt',
   id_policy: 'preserve',
-  source: { tracker_path: 'docs/exec-plans/tech-debt-tracker.md', discovered_at: discoveredAt },
+  source: {
+    tracker_path: 'docs/exec-plans/tech-debt-tracker.md',
+    discovered_at: discoveredAt,
+  },
   entries,
   ...overrides,
 });
@@ -161,7 +181,10 @@ const entryFindingCodes = (payload: ImportPayload, recordId: string): ReadonlyAr
 
 const expectCheckPasses = async (root: string, expectedCount: number): Promise<void> => {
   const check = await run(root, ['check', '--json']);
-  const payload = parseJsonStdout(check.stdout) as { ok: boolean; checkedRecordCount: number };
+  const payload = parseJsonStdout(check.stdout) as {
+    ok: boolean;
+    checkedRecordCount: number;
+  };
 
   assert.strictEqual(check.exitCode, 0);
   assert.strictEqual(payload.ok, true);
@@ -275,7 +298,9 @@ describe('import CLI command', () => {
           title: 'Superseded without evidence',
           status: 'superseded',
           sections: sections(),
-          resolution: { rationale: 'Ownership moved, but no evidence ref was provided.' },
+          resolution: {
+            rationale: 'Ownership moved, but no evidence ref was provided.',
+          },
         },
       ]);
       const result = await runImport(root, manifest);
@@ -298,7 +323,9 @@ describe('import CLI command', () => {
 
   it('fails with a stable error for an unknown record type', async () => {
     await withTempRepo(importRepoOptions, async (root) => {
-      const manifest = manifestWith([openEntry(1, 'TD-001')], { record_type: 'made-up' });
+      const manifest = manifestWith([openEntry(1, 'TD-001')], {
+        record_type: 'made-up',
+      });
       const result = await runImport(root, manifest);
 
       assert.strictEqual(result.exitCode, 1);
@@ -326,7 +353,9 @@ describe('import CLI command', () => {
 
   it('fails when an entry ID collides with an existing on-disk record', async () => {
     await withTempRepo(importRepoOptions, async (root) => {
-      const store = createMarkdownRecordStore({ root: path.join(root, 'docs/records') });
+      const store = createMarkdownRecordStore({
+        root: path.join(root, 'docs/records'),
+      });
       await store.createRecord(
         'tech-debt/open/bp-td-007.md',
         techDebtRecord(7, 'Existing active record', '2026-06-01T00:00:00Z'),
@@ -370,7 +399,13 @@ describe('import CLI command ID and number safety', () => {
     await withTempRepo(importRepoOptions, async (root) => {
       await writeUnreadable(root, 'tech-debt/open/bp-td-009.md');
       const manifest = manifestWith(
-        [{ title: 'Allocated after the gap', status: 'open', sections: sections() }],
+        [
+          {
+            title: 'Allocated after the gap',
+            status: 'open',
+            sections: sections(),
+          },
+        ],
         { id_policy: 'allocate' },
       );
       const result = await runImport(root, manifest);
@@ -407,7 +442,9 @@ describe('import CLI command ID and number safety', () => {
 
   it('allocates sequential numbers after the highest existing record', async () => {
     await withTempRepo(importRepoOptions, async (root) => {
-      const store = createMarkdownRecordStore({ root: path.join(root, 'docs/records') });
+      const store = createMarkdownRecordStore({
+        root: path.join(root, 'docs/records'),
+      });
       await store.createRecord(
         'tech-debt/open/bp-td-004.md',
         techDebtRecord(4, 'Existing record', '2026-06-01T00:00:00Z'),
@@ -490,7 +527,7 @@ describe('import preflight and write safety', () => {
 
   it('rolls back only its own creates and leaves a colliding file intact on no-clobber failure', async () => {
     await withTempRepo(importRepoOptions, async (root) => {
-      const services = await loadAppServices({ cwd: root, json: false, now: () => now });
+      const services = await loadAppServices({ cwd: root });
       const collidingPath = 'tech-debt/open/bp-td-002.md';
       // A file another writer created after preflight, hidden from this import's preflight.
       await services.store.createRecord(

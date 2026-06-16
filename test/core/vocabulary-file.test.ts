@@ -1,4 +1,3 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -6,9 +5,11 @@ import path from 'node:path';
 import { assert, describe, it } from '@effect/vitest';
 
 import { loadVocabularyFile } from '../../src/config/repo-context.js';
-import type { IntrospectionVocabulary, VocabularyTerm } from '../../src/config/repo-context.js';
 import { proposeVocabularyTerm } from '../../src/core/vocabulary.js';
 import { renderVocabularyToml } from '../../src/core/vocabulary-file.js';
+
+type IntrospectionVocabulary = Awaited<ReturnType<typeof loadVocabularyFile>>;
+type VocabularyTerm = IntrospectionVocabulary['terms'][number];
 
 const timestamp = '2026-06-10T00:00:00Z';
 
