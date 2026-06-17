@@ -1,6 +1,6 @@
-# Tracker governance: plan
+# Tracker governance: superseded design input
 
-> **Status: SUPERSEDED (2026-06-01).** Backpressure will adopt the cross-repo `introspection` system rather than hand-roll its own tracker governance. This plan is preserved as design input. Its write-gate, entry schema, and the TD-001..010 keep/delete audit feed introspection's tech-debt record type. Final disposition (archive or delete) is owned by the introspection deep-plan's reconcile step. See `/Users/mp/Projects/personal/introspection/docs/design-input/introspection-seed-2026-06-01.md`.
+> **Final disposition: MINED INTO INTROSPECTION V1 (2026-06-12).** Backpressure adopted the cross-repo `introspection` record system instead of hand-rolling tracker governance. This document is preserved only as design input; do not execute the work items below as an active plan. Its write-gate, entry schema, lifecycle concerns, and TD-001..010 keep/delete audit were mined into the active bootstrap plan's tech-debt record shape and validated by the WI-15 backpressure dogfood gate. Continue from `../exec-plans/active/introspection-v1-bootstrap-2026-06-10.md`, especially WI-15 and WI-16.
 
 ## Goal
 
@@ -85,7 +85,7 @@ The lever is making agent judgment explicit at the point of use, plus a file lay
 
 **6. Distillation.** Other repos reuse the pattern and write their own copy of the policy. Each repo gets a local write-gate, the detail-oriented schema, the archive-don't-delete lifecycle, an owner-doc dedup check, and a router link. Apply the same detail standard to other repos' trackers, including claude-toolkit's, which already partly models it. Do not add a generic tracker tool, skill, or package unless multiple repos prove the manual policy insufficient.
 
-## Work Items
+## Superseded work items, not active
 
 ### Item 1, author the tracker-governance design doc
 **Goal:** Create the single authoritative home for tracker policy.
@@ -132,7 +132,7 @@ The lever is making agent judgment explicit at the point of use, plus a file lay
 ### Item 7, define distillation guidance for other repos
 **Goal:** Capture how to reuse the model elsewhere without copying stale policy text.
 **Done when:** a short distillation note (in this plan or its closeout) says other repos adopt a local write-gate, the detail schema, the archive-don't-delete lifecycle, an owner-doc dedup check, and a router-only link; cites claude-toolkit's existing trackers as the detail model and flags raising the detail standard there; states explicitly not to adopt beads, Backlog.md, git-issues, or new tooling unless the manual policy fails; and creates no cross-repo policy file prematurely.
-**Key files:** `docs/exec-plans/active/tracker-governance-2026-06-01.md` (later, its completed closeout)
+**Key files:** this preserved design-input document only; no active tracker-governance closeout will be created.
 **Dependencies:** Items 1, 2, 6
 **Size:** S
 
@@ -167,5 +167,5 @@ The checkpoint decisions are settled (design-doc policy home; archive-don't-dele
 - Global rules: `claude-toolkit/GLOBAL_CLAUDE.md:4-5` (plus `GLOBAL_AGENTS.md:4-5` mirror), symlink via `setup.sh:128,132`, lint at `.claude/skills/toolkit-lint/SKILL.md:18`
 - Topical coupling: `docs/references/mutation-testing.md:125`, `docs/design-docs/preset-architecture.md:96`
 - claude-toolkit trackers (detail model): `.claude/skills/knowledge-crawl/references/tech-debt-tracker.md` (lines 420, 433, 501), `.claude/skills/meeting-orchestrate/references/tech-debt-tracker.md:28-29`
-- Plan critique: `docs/reviews/tracker-governance-plan-critique-2026-06-01.md`
+- Companion critique: `tracker-governance-plan-critique-2026-06-01.md`
 - External: [beads](https://github.com/steveyegge/beads), [Backlog.md](https://github.com/MrLesk/Backlog.md), [git-issues](https://github.com/steviee/git-issues), [Claude Code memory](https://code.claude.com/docs/en/memory)

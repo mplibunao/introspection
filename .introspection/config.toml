@@ -1,0 +1,23 @@
+schema_version = 1
+repo_key = "IX"
+repo_slug = "introspection"
+
+[records]
+root = "docs/records"
+
+[defaults]
+visibility = "local-only"
+
+[prime]
+default_limit = 10
+hard_limit = 50
+
+[[policy_docs]]
+name = "Repo agent router"
+path = "CLAUDE.md"
+applies_to = ["agent-workflow", "tech-debt"]
+
+[[policy_docs]]
+name = "Exec plan lifecycle"
+path = "docs/exec-plans/index.md"
+applies_to = ["agent-workflow"]

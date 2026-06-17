@@ -1,0 +1,18 @@
+{
+  "name": "@mplibunao/introspection-linux-x64",
+  "version": "0.0.0",
+  "description": "linux-x64 compiled binary for the introspection CLI.",
+  "license": "MIT",
+  "files": [
+    "bin"
+  ],
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

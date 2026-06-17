@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://introspection.local/schemas/base-record.schema.json",
+  "title": "introspection base record frontmatter",
+  "description": "Shared frontmatter fields for every introspection-owned markdown record. Record-type schemas extend this open base and close their own accepted key set.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "repo_key",
+    "record_type",
+    "number",
+    "title",
+    "status",
+    "type",
+    "category",
+    "visibility",
+    "created_at",
+    "updated_at",
+    "tags"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}(?:-[A-Z][A-Z0-9]{1,15})+-[0-9]{3,}$"
+    },
+    "repo_key": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}$"
+    },
+    "record_type": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)*$"
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "type": "string",
+      "const": "introspection-record"
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "visibility": {
+      "$ref": "#/$defs/visibility"
+    },
+    "created_at": {
+      "$ref": "#/$defs/isoDateTimeString"
+    },
+    "updated_at": {
+      "$ref": "#/$defs/isoDateTimeString"
+    },
+    "tags": {
+      "$ref": "#/$defs/tagList"
+    }
+  },
+  "$defs": {
+    "visibility": {
+      "type": "string",
+      "enum": ["local-only"]
+    },
+    "isoDateTimeString": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "tag": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]*(?:/[a-z0-9][a-z0-9.-]*)*$"
+    },
+    "tagSegment": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]*$"
+    },
+    "tagList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/tag"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "evidenceRef": {
+      "type": "object",
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["tracker", "plan", "doc", "commit", "url", "record", "other"]
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["discovered_at"],
+      "properties": {
+        "discovered_at": {
+          "$ref": "#/$defs/isoDateTimeString"
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": ["paths"],
+      "properties": {
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "conversionTarget": {
+      "type": "object",
+      "required": ["kind", "ref", "rationale"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "doc",
+            "check",
+            "hook",
+            "skill",
+            "record",
+            "taste-card",
+            "global-instruction",
+            "repo-instruction",
+            "other"
+          ]
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "conversionTargets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/conversionTarget"
+      },
+      "minItems": 1
+    },
+    "resolution": {
+      "type": "object",
+      "required": ["disposition", "resolved_at", "rationale"],
+      "properties": {
+        "disposition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolved_at": {
+          "$ref": "#/$defs/isoDateTimeString"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$comment": "The base schema is intentionally open so record-type schemas can add nested introspection-only blocks and then close the full shape with unevaluatedProperties: false."
+}

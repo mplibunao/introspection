@@ -49,6 +49,8 @@ export default defineConfig({
       'import/max-dependencies': ['error', { max: 15 }],
       'import/no-default-export': 'off',
       'import/no-named-export': 'off',
+      'import/no-nodejs-modules': 'off',
+
       'import/no-relative-parent-imports': 'off',
       'import/prefer-default-export': 'off',
       'jest/require-hook': 'off',

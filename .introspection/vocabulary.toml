@@ -1,0 +1,19 @@
+schema_version = 1
+
+[[terms]]
+tag = "timeframe/deferred-behind-v1"
+status = "approved"
+description = "Accepted deferrals that were deliberately held behind the v1 record-kernel scope."
+applies_to = ["tech-debt"]
+[terms.provenance]
+kind = "human"
+noted_at = "2026-06-12T00:00:00Z"
+
+[[terms]]
+tag = "timeframe/roadmap-post-v1"
+status = "approved"
+description = "Roadmap items that should be promoted only when their written trigger fires after v1."
+applies_to = ["tech-debt"]
+[terms.provenance]
+kind = "human"
+noted_at = "2026-06-12T00:00:00Z"
