@@ -1,4 +1,3 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import type { RepoContext } from '../config/repo-context.js';
 import { IntrospectionError } from '../core/errors.js';
 import { buildRecordCandidate } from '../core/record-candidate.js';
@@ -11,13 +10,17 @@ import type {
   ValidationContext,
 } from '../core/record-type-types.js';
 import { checkRecordResults } from '../core/validation.js';
-import type { CheckFinding, RecordReadResult } from '../core/validation.js';
 import { recordTypeRegistry } from '../record-types/registry.js';
 import type { MarkdownRecordStore } from '../store/markdown-record-store.js';
 
 import { allocationBase, indexCorpus } from './corpus-index.js';
-import type { CorpusIndex, OccupiedIdentity } from './corpus-index.js';
 import type { ImportIdPolicy, ImportManifest, ImportManifestEntry } from './manifest.js';
+
+type CheckFinding = ReturnType<typeof checkRecordResults>['findings'][number];
+type CorpusIndex = ReturnType<typeof indexCorpus>;
+type RecordReadResult = Parameters<typeof checkRecordResults>[0][number];
+type OccupiedIdentity =
+  CorpusIndex['occupiedById'] extends ReadonlyMap<string, infer Identity> ? Identity : never;
 
 interface ImportCandidate {
   readonly entry: ImportManifestEntry;

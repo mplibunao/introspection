@@ -1,4 +1,4 @@
-/* eslint-disable no-duplicate-imports, typescript-eslint/explicit-function-return-type -- fixture-heavy test file */
+/* eslint-disable typescript-eslint/explicit-function-return-type -- fixture-heavy test file */
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -6,11 +6,6 @@ import path from 'node:path';
 import { assert, describe, it } from '@effect/vitest';
 
 import { loadVocabularyFile } from '../../src/config/repo-context.js';
-import type {
-  IntrospectionVocabulary,
-  VocabularyProvenance,
-  VocabularyTerm,
-} from '../../src/config/repo-context.js';
 import { RecordStoreError } from '../../src/core/errors.js';
 import {
   approveVocabularyTerm,
@@ -26,6 +21,10 @@ import { renderVocabularyToml } from '../../src/core/vocabulary-file.js';
 import type { ParsedRecord } from '../../src/core/record-type-types.js';
 import type { TechDebtFrontmatter } from '../../src/record-types/tech-debt-types.js';
 import { createMarkdownRecordStore } from '../../src/store/markdown-record-store.js';
+
+type IntrospectionVocabulary = Awaited<ReturnType<typeof loadVocabularyFile>>;
+type VocabularyProvenance = IntrospectionVocabulary['terms'][number]['provenance'];
+type VocabularyTerm = IntrospectionVocabulary['terms'][number];
 
 const timestamp = '2026-06-10T00:00:00Z';
 const provenance: VocabularyProvenance = {

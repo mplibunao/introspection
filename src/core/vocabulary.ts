@@ -1,8 +1,6 @@
 import path from 'node:path';
 
 import { assertVocabularyShape, loadVocabularyFile } from '../config/repo-context.js';
-// eslint-disable-next-line no-duplicate-imports -- Import-style rules require top-level type imports next to this runtime import.
-import type { IntrospectionVocabulary, VocabularyTerm } from '../config/repo-context.js';
 import { withLocalNamedLock } from '../store/local-lock.js';
 import type { StoredMarkdownRecord } from '../store/markdown-record-store.js';
 import { IntrospectionError } from './errors.js';
@@ -30,6 +28,8 @@ import {
   vocabularyTagFindings,
 } from './vocabulary-validation.js';
 
+type IntrospectionVocabulary = Awaited<ReturnType<typeof loadVocabularyFile>>;
+type VocabularyTerm = IntrospectionVocabulary['terms'][number];
 class VocabularyServiceError extends IntrospectionError {}
 const vocabularyLockName = 'vocabulary.lock';
 
