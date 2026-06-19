@@ -497,4 +497,51 @@ describe('CLI command shell', () => {
       );
     });
   });
+
+  it('discovers the repo through the --root override on check from an unrelated cwd', async () => {
+    await withTempRepo(async (root) => {
+      const elsewhere = await mkdtemp(path.join(os.tmpdir(), 'introspection-check-nonrepo-'));
+
+      try {
+        /*
+         * The guard allowed --root on check before the cutover fix, but Effect
+         * rejected it. It must now redirect repo discovery like export and init.
+         */
+        const result = await runCli({
+          args: ['check', '--root', root, '--json'],
+          cwd: elsewhere,
+          now: nextDate,
+        });
+
+        assert.strictEqual(result.exitCode, 0, result.stdout);
+        assert.strictEqual((parseJsonStdout(result.stdout) as { ok: boolean }).ok, true);
+      } finally {
+        await rm(elsewhere, { force: true, recursive: true });
+      }
+    });
+  });
+
+  it('rejects a valueless --root before mutating, even on non-strict commands', async () => {
+    await withTempRepo(async (root) => {
+      /*
+       * Both record create and vocab approve are non-strict and skip
+       * assertKnownFlags; a valueless --root must still fail rather than silently
+       * running against the invocation cwd (the wrong repo) and mutating it.
+       */
+      const createResult = await run(root, [
+        ...createRecordArgs('Valueless-root record'),
+        '--root',
+        '--json',
+      ]);
+      const approveResult = await run(root, ['vocab', 'approve', 'topic/old', '--root', '--json']);
+      const store = createMarkdownRecordStore({ root: path.join(root, 'docs/records') });
+
+      assert.strictEqual(createResult.exitCode, 1);
+      assert.strictEqual(errorCodeFromStdout(createResult.stdout), 'cli.argument.invalid');
+      assert.strictEqual(approveResult.exitCode, 1);
+      assert.strictEqual(errorCodeFromStdout(approveResult.stdout), 'cli.argument.invalid');
+      // The valueless --root is rejected before any repo mutation lands.
+      assert.deepStrictEqual(await store.listRecords(), []);
+    });
+  });
 });
