@@ -156,15 +156,42 @@ const seedFixture = async (projectDirectory: string): Promise<void> => {
   );
 };
 
-const assertHelpWorks = async (projectDirectory: string): Promise<void> => {
+const readExpectedVersion = async (): Promise<string> => {
+  const manifest: unknown = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
+
+  if (
+    typeof manifest !== 'object' ||
+    manifest === null ||
+    !('version' in manifest) ||
+    typeof manifest.version !== 'string'
+  ) {
+    throw new Error('Root package.json is missing a string version.');
+  }
+
+  return manifest.version;
+};
+
+const assertHelpWorks = async (
+  projectDirectory: string,
+  expectedVersion: string,
+): Promise<void> => {
   const { stdout } = await run(
     path.join(projectDirectory, 'node_modules/.bin/introspection'),
     ['--help'],
     projectDirectory,
   );
 
-  if (!stdout.includes('introspection 0.0.0')) {
-    throw new Error(`Packed CLI help output did not include the expected version:\n${stdout}`);
+  // Exact banner match, not a substring search, so a version string appearing elsewhere can't mask a wrong banner.
+  const banner =
+    stdout
+      .split('\n')
+      .map((line) => line.trim())
+      .find((line) => line.length > 0) ?? '';
+
+  if (banner !== `introspection ${expectedVersion}`) {
+    throw new Error(
+      `Packed CLI help banner was "${banner}", expected "introspection ${expectedVersion}":\n${stdout}`,
+    );
   }
 };
 
@@ -212,22 +239,64 @@ const assertNoPlatformPackagePresent = async (
   throw new Error(`Expected ${platformPackage.directory} to be absent for the fallback smoke.`);
 };
 
+// The --help banner only proves the bundled CLI version; assert each installed manifest too, to catch a published package whose version drifted from the main package.
+const assertInstalledVersion = async (
+  projectDirectory: string,
+  packageDirectory: string,
+  expectedVersion: string,
+): Promise<void> => {
+  const manifest: unknown = JSON.parse(
+    await readFile(
+      path.join(projectDirectory, 'node_modules/@mplibunao', packageDirectory, 'package.json'),
+      'utf8',
+    ),
+  );
+
+  if (
+    typeof manifest !== 'object' ||
+    manifest === null ||
+    !('version' in manifest) ||
+    typeof manifest.version !== 'string'
+  ) {
+    throw new Error(`Installed @mplibunao/${packageDirectory} is missing a string version.`);
+  }
+
+  if (manifest.version !== expectedVersion) {
+    throw new Error(
+      `Installed @mplibunao/${packageDirectory} version ${manifest.version} does not match expected ${expectedVersion}.`,
+    );
+  }
+};
+
+const assertInstalledProject = async (
+  label: string,
+  projectDirectory: string,
+  platformPackage: PlatformPackage,
+  expectedVersion: string,
+): Promise<void> => {
+  await assertInstalledVersion(projectDirectory, 'introspection', expectedVersion);
+
+  if (label === 'fallback') {
+    await assertNoPlatformPackagePresent(projectDirectory, platformPackage);
+  } else {
+    await assertInstalledVersion(projectDirectory, platformPackage.directory, expectedVersion);
+  }
+
+  await assertHelpWorks(projectDirectory, expectedVersion);
+  await assertCheckWorks(projectDirectory);
+};
+
 const smokeProject = async (
   label: string,
   installArgs: ReadonlyArray<string>,
   platformPackage: PlatformPackage,
+  expectedVersion: string,
 ): Promise<void> => {
   const projectDirectory = await mkdtemp(path.join(os.tmpdir(), `introspection-${label}-smoke-`));
 
   try {
     await runPnpm(['add', ...installArgs, '--ignore-scripts', '--no-optional'], projectDirectory);
-
-    if (label === 'fallback') {
-      await assertNoPlatformPackagePresent(projectDirectory, platformPackage);
-    }
-
-    await assertHelpWorks(projectDirectory);
-    await assertCheckWorks(projectDirectory);
+    await assertInstalledProject(label, projectDirectory, platformPackage, expectedVersion);
     process.stdout.write(`${label} packed install smoke passed\n`);
   } finally {
     await rm(projectDirectory, { force: true, recursive: true });
@@ -241,6 +310,7 @@ try {
   await runPnpm(['--recursive', 'pack', '--pack-destination', packDirectory], root);
 
   const platformPackage = currentPlatformPackage();
+  const expectedVersion = await readExpectedVersion();
   const mainTarball = await findTarball(
     packDirectory,
     /^mplibunao-introspection-\d.*\.tgz$/u,
@@ -252,8 +322,8 @@ try {
     platformPackage.directory,
   );
 
-  await smokeProject('native', [mainTarball, platformTarball], platformPackage);
-  await smokeProject('fallback', [mainTarball], platformPackage);
+  await smokeProject('native', [mainTarball, platformTarball], platformPackage, expectedVersion);
+  await smokeProject('fallback', [mainTarball], platformPackage, expectedVersion);
 } finally {
   await rm(packDirectory, { force: true, recursive: true });
 }
