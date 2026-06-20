@@ -1,22 +1,16 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
 
-import { IntrospectionError } from '../core/errors.js';
+import type { CliCommandContext } from '../../../commands/types.js';
+import { IntrospectionError } from '../../../core/errors.js';
 import {
   installImportTarget,
   planImportTargets,
   resolveImportTargets,
   showImportStatus,
   toImportReport,
-} from '../core/init-import-line.js';
-import type {
-  ImportLineStatus,
-  ImportTargetPlan,
-  ImportTargets,
-  InitImportReport,
-} from '../core/init-import-line.js';
+} from '../../../core/init-import-line.js';
 import {
   defaultRecordsRoot,
   deriveRepoKey,
@@ -26,44 +20,38 @@ import {
   starterVocabulary,
   validateRepoKey,
   validateRepoSlug,
-} from '../core/init-scaffold.js';
-import type {
-  ConfigArtifactStatus,
-  InitArtifactReport,
-  InitReport,
-  ResolvedConfigValues,
-} from '../core/init-scaffold.js';
-import { effectiveTargetPath, pathExists, resolveSafeRepoPath } from '../core/repo-path-safety.js';
-import type { SafePathErrors } from '../core/repo-path-safety.js';
-import { renderVocabularyToml } from '../core/vocabulary-file.js';
-import { initHuman } from '../presenters/human.js';
-import { initJson } from '../presenters/json.js';
-
+} from '../../../core/init-scaffold.js';
 import {
-  assertKnownFlags,
-  assertNoExtraPositionals,
-  booleanFlag,
-  contextWithRootOverride,
-  failure,
-  optionalFlag,
-  parseFlags,
-} from './helpers.js';
-import type { CliCommandContext, CommandHandler } from './types.js';
+  effectiveTargetPath,
+  pathExists,
+  resolveSafeRepoPath,
+} from '../../../core/repo-path-safety.js';
+import { renderVocabularyToml } from '../../../core/vocabulary-file.js';
+import { initHuman } from '../../../presenters/human.js';
+import { initJson } from '../../../presenters/json.js';
+
+const resolveSafeRepoPathErrorsIndex = 3;
+
+type ImportLineStatus = ReturnType<typeof toImportReport>['status'];
+type ConfigArtifactStatus = 'absent' | 'created' | 'preserved' | 'present';
+type SafePathErrors = Parameters<typeof resolveSafeRepoPath>[typeof resolveSafeRepoPathErrorsIndex];
+type ImportTargetPlan = Parameters<typeof toImportReport>[0];
+type ImportTargets = Awaited<ReturnType<typeof resolveImportTargets>>;
+type InitImportReport = ReturnType<typeof toImportReport>;
+type InitReport = Parameters<typeof initJson>[0];
+type ResolvedConfigValues = Parameters<typeof renderConfigToml>[0];
+
+/*
+ * Filesystem orchestration for `introspection init`: resolve the repo root,
+ * the managed output paths, and the import-line targets, then either report
+ * adoption state (--show) or write the scaffold. The Effect command surface
+ * (config typing, flag-map projection, dispatch) lives in ./index.ts.
+ */
 
 const introspectionDirName = '.introspection';
 const configFileName = 'config.toml';
 const vocabularyFileName = 'vocabulary.toml';
 const routerFileName = 'INTROSPECTION.md';
-
-const initUsage = [
-  'introspection init [--root PATH] [--repo-key KEY] [--repo-slug SLUG]',
-  '[--records-root PATH] [--agents-file PATH] [--yes] [--show] [--json]',
-].join('\n       ');
-
-const initFlagSpec = {
-  valued: ['repo-key', 'repo-slug', 'records-root', 'agents-file'],
-  boolean: ['yes', 'show'],
-};
 
 // Bind the shared repo-path policy to init's own error namespace.
 const initSafePathErrors: SafePathErrors = {
@@ -77,12 +65,7 @@ const initSafePathErrors: SafePathErrors = {
     new IntrospectionError(
       'init.path.outside_root',
       `${fieldName} must resolve inside the repo root.`,
-      {
-        fieldName,
-        path: configuredPath,
-        repoRoot,
-        ...details,
-      },
+      { fieldName, path: configuredPath, repoRoot, ...details },
     ),
 };
 
@@ -103,9 +86,18 @@ interface ScalarResolution {
   readonly missing: () => IntrospectionError;
 }
 
+interface InitInputs {
+  readonly repoKey?: string;
+  readonly repoSlug?: string;
+  readonly recordsRoot?: string;
+  readonly agentsFile?: string;
+  readonly yes: boolean;
+  readonly show: boolean;
+}
+
 interface ConfigInputs {
   readonly repoRoot: string;
-  readonly flags: Map<string, ReadonlyArray<string>>;
+  readonly inputs: InitInputs;
   readonly useDefaults: boolean;
   readonly canPrompt: boolean;
 }
@@ -114,7 +106,7 @@ interface WriteInputs {
   readonly repoRoot: string;
   readonly paths: RepoPaths;
   readonly targets: ImportTargets;
-  readonly flags: Map<string, ReadonlyArray<string>>;
+  readonly inputs: InitInputs;
   readonly context: CliCommandContext;
 }
 
@@ -126,20 +118,17 @@ interface ConfigOutcome {
 }
 
 /*
- * The init command is the bootstrap, so it must discover the repo root WITHOUT
- * loadRepoContext (which requires an existing config and throws otherwise). The
- * root is the --root override when given, otherwise the resolved working
- * directory: a deterministic invariant that needs no git and no prior config.
+ * Init is the bootstrap, so it discovers the repo root WITHOUT loadRepoContext
+ * (which requires an existing config). The root is the resolved context cwd
+ * (already overridden by --root at the boundary): a deterministic invariant
+ * that needs no git and no prior config.
  */
 const resolveRepoRoot = (context: CliCommandContext): string =>
   path.resolve(context.cwd ?? process.cwd());
 
 /*
- * Reject when two managed outputs resolve to the same file. The repo-escape
- * check proves each output stays inside the repo but not that they are
- * distinct, so an in-repo alias (e.g. INTROSPECTION.md symlinked to
- * config.toml) could let the router write clobber a preserved config and defeat
- * the never-clobber guarantee.
+ * Reject when two managed outputs resolve to the same file, so an in-repo alias
+ * cannot let the router write clobber a preserved config.
  */
 const assertNoOutputAliasing = async (paths: RepoPaths): Promise<void> => {
   const effectiveTargets = await Promise.all([
@@ -158,11 +147,8 @@ const assertNoOutputAliasing = async (paths: RepoPaths): Promise<void> => {
 };
 
 /*
- * Resolve the managed output paths (config, vocabulary, router) through the
- * same safe-path policy as the import targets, so every path init writes is
- * confirmed inside the repo. A symlinked .introspection or INTROSPECTION.md, or
- * a symlinked parent, that resolves outside the repo is rejected before any
- * write happens; aliasing among the three outputs is rejected too.
+ * Resolve the managed output paths through the same safe-path policy as the
+ * import targets, so every path init writes is confirmed inside the repo.
  */
 const repoPathsFor = async (repoRoot: string): Promise<RepoPaths> => {
   const configPath = await resolveSafeRepoPath(
@@ -204,7 +190,10 @@ const promptText = (label: string, fallback: string | undefined): string => {
 
 // Prompts are written to stderr so they never contaminate stdout (including --json payloads).
 const promptValue = async (label: string, fallback: string | undefined): Promise<string> => {
-  const readline = createInterface({ input: process.stdin, output: process.stderr });
+  const readline = createInterface({
+    input: process.stdin,
+    output: process.stderr,
+  });
 
   try {
     const answer = (await readline.question(promptText(label, fallback))).trim();
@@ -228,10 +217,9 @@ const resolveFromDefault = (resolution: ScalarResolution): string => {
 };
 
 /*
- * Resolve a config scalar with an explicit precedence: an explicit flag wins;
+ * Resolve a config scalar with explicit precedence: an explicit flag wins;
  * otherwise --yes uses the derived default; otherwise prompt when interactive;
- * otherwise fail loudly. Init never silently invents a value — the TTY check
- * only decides prompt-vs-error, it never fabricates the answer.
+ * otherwise fail loudly. init never silently invents a value.
  */
 const resolveScalar = async (resolution: ScalarResolution): Promise<string> => {
   if (resolution.flagValue) {
@@ -262,7 +250,7 @@ const requiredValueError = (field: string, flag: string, repoRoot: string): Intr
 
 const resolveRepoSlug = async (inputs: ConfigInputs): Promise<string> =>
   resolveScalar({
-    flagValue: optionalFlag(inputs.flags, 'repo-slug'),
+    flagValue: inputs.inputs.repoSlug,
     derived: deriveRepoSlug(inputs.repoRoot),
     useDefaults: inputs.useDefaults,
     canPrompt: inputs.canPrompt,
@@ -273,7 +261,7 @@ const resolveRepoSlug = async (inputs: ConfigInputs): Promise<string> =>
 
 const resolveRepoKey = async (inputs: ConfigInputs, slug: string): Promise<string> =>
   resolveScalar({
-    flagValue: optionalFlag(inputs.flags, 'repo-key'),
+    flagValue: inputs.inputs.repoKey,
     derived: deriveRepoKey(slug),
     useDefaults: inputs.useDefaults,
     canPrompt: inputs.canPrompt,
@@ -283,10 +271,8 @@ const resolveRepoKey = async (inputs: ConfigInputs, slug: string): Promise<strin
   });
 
 /*
- * Validate the records root through the same realpath-safe resolver that
- * repo-context applies at load time, then store the normalised repo-relative
- * value. This guarantees init never writes a records root that prime/check
- * would later reject as resolving outside the repo.
+ * Validate the records root through the same realpath-safe resolver repo-context
+ * applies at load time, then store the normalised repo-relative value.
  */
 const safeRecordsRoot = async (repoRoot: string, configured: string): Promise<string> => {
   await resolveSafeRepoPath(repoRoot, configured, 'records-root', initSafePathErrors);
@@ -295,12 +281,10 @@ const safeRecordsRoot = async (repoRoot: string, configured: string): Promise<st
 };
 
 /*
- * Records root always has a safe default, so it never requires --yes or a flag
- * and never blocks a non-interactive run. An explicit flag wins; an interactive
- * run may override; otherwise it falls back to the default.
+ * Records root always has a safe default, so it never requires --yes or a flag.
  */
 const resolveRecordsRoot = async (inputs: ConfigInputs): Promise<string> => {
-  const flagValue = optionalFlag(inputs.flags, 'records-root');
+  const flagValue = inputs.inputs.recordsRoot;
 
   if (flagValue) {
     return safeRecordsRoot(inputs.repoRoot, flagValue);
@@ -328,7 +312,6 @@ const writeIfAbsent = async (filePath: string, content: string): Promise<ConfigA
   return 'created';
 };
 
-// Returns the present/absent subset shared by every artifact status union, so it fits config and router alike.
 const showArtifactStatus = async (filePath: string): Promise<'absent' | 'present'> => {
   if (await pathExists(filePath)) {
     return 'present';
@@ -340,7 +323,10 @@ const showArtifactStatus = async (filePath: string): Promise<'absent' | 'present
 const showArtifactReport = async (
   repoRoot: string,
   filePath: string,
-): Promise<InitArtifactReport<'absent' | 'present'>> => ({
+): Promise<{
+  readonly path: string;
+  readonly status: 'absent' | 'present';
+}> => ({
   path: path.relative(repoRoot, filePath),
   status: await showArtifactStatus(filePath),
 });
@@ -373,12 +359,12 @@ const runShow = async (
 const interactiveTty = (): boolean => process.stdin.isTTY ?? false;
 
 const resolveConfigValues = async (inputs: WriteInputs): Promise<ResolvedConfigValues> => {
-  const useDefaults = booleanFlag(inputs.flags, 'yes');
+  const useDefaults = inputs.inputs.yes;
   // Interactive prompting only when a human is attached: never in --yes or --json runs, and never without a TTY.
   const canPrompt = !useDefaults && !inputs.context.json && interactiveTty();
   const configInputs: ConfigInputs = {
     repoRoot: inputs.repoRoot,
-    flags: inputs.flags,
+    inputs: inputs.inputs,
     useDefaults,
     canPrompt,
   };
@@ -391,9 +377,7 @@ const resolveConfigValues = async (inputs: WriteInputs): Promise<ResolvedConfigV
 
 /*
  * Resolve and write config.toml only when it is absent. An existing config is
- * preserved untouched (never clobbered), and because re-running init then needs
- * no new values, it requires neither --yes nor flags: the refresh path (regen
- * INTROSPECTION.md, re-assert import lines) stays friction-free.
+ * preserved untouched, so a re-run needs no new values and stays friction-free.
  */
 const resolveConfig = async (inputs: WriteInputs): Promise<ConfigOutcome> => {
   if (await pathExists(inputs.paths.configPath)) {
@@ -404,7 +388,9 @@ const resolveConfig = async (inputs: WriteInputs): Promise<ConfigOutcome> => {
 
   // Create .introspection only after values resolve, so a failed resolution leaves no stray directory.
   await mkdir(inputs.paths.introspectionDir, { recursive: true });
-  await writeFile(inputs.paths.configPath, renderConfigToml(values), { flag: 'wx' });
+  await writeFile(inputs.paths.configPath, renderConfigToml(values), {
+    flag: 'wx',
+  });
 
   return { status: 'created', ...values };
 };
@@ -412,7 +398,7 @@ const resolveConfig = async (inputs: WriteInputs): Promise<ConfigOutcome> => {
 const runWrite = async (inputs: WriteInputs): Promise<InitReport> => {
   const { repoRoot, paths, targets, context } = inputs;
   const config = await resolveConfig(inputs);
-  // The preserved-config refresh path skips the config write above, so ensure the directory exists for the vocabulary write.
+  // The preserved-config refresh path skips the config write, so ensure the directory exists for the vocabulary write.
   await mkdir(paths.introspectionDir, { recursive: true });
   const vocabularyStatus = await writeIfAbsent(
     paths.vocabularyPath,
@@ -427,11 +413,28 @@ const runWrite = async (inputs: WriteInputs): Promise<InitReport> => {
     ...(config.repoKey && { repoKey: config.repoKey }),
     ...(config.repoSlug && { repoSlug: config.repoSlug }),
     ...(config.recordsRoot && { recordsRoot: config.recordsRoot }),
-    config: { path: path.relative(repoRoot, paths.configPath), status: config.status },
-    vocabulary: { path: path.relative(repoRoot, paths.vocabularyPath), status: vocabularyStatus },
-    router: { path: path.relative(repoRoot, paths.routerPath), status: 'generated' },
+    config: {
+      path: path.relative(repoRoot, paths.configPath),
+      status: config.status,
+    },
+    vocabulary: {
+      path: path.relative(repoRoot, paths.vocabularyPath),
+      status: vocabularyStatus,
+    },
+    router: {
+      path: path.relative(repoRoot, paths.routerPath),
+      status: 'generated',
+    },
     imports,
   };
+};
+
+const runInit = async (inputs: WriteInputs): Promise<InitReport> => {
+  if (inputs.inputs.show) {
+    return runShow(inputs.repoRoot, inputs.paths, inputs.targets);
+  }
+
+  return runWrite(inputs);
 };
 
 const renderReport = (json: boolean, report: InitReport): string => {
@@ -442,48 +445,19 @@ const renderReport = (json: boolean, report: InitReport): string => {
   return initHuman(report);
 };
 
-const runInit = async (inputs: WriteInputs): Promise<InitReport> => {
-  if (booleanFlag(inputs.flags, 'show')) {
-    return runShow(inputs.repoRoot, inputs.paths, inputs.targets);
-  }
-
-  return runWrite(inputs);
-};
-
-const executeInit = async (
-  args: ReadonlyArray<string>,
-  context: CliCommandContext,
-): Promise<string> => {
-  const { flags, positionals } = parseFlags(args);
-  assertNoExtraPositionals(positionals, initUsage);
-  assertKnownFlags(flags, initFlagSpec, initUsage);
-
-  const effectiveContext = contextWithRootOverride(context, flags);
-  const repoRoot = resolveRepoRoot(effectiveContext);
+const executeInit = async (inputs: InitInputs, context: CliCommandContext): Promise<string> => {
+  const repoRoot = resolveRepoRoot(context);
   const paths = await repoPathsFor(repoRoot);
   const targets = await resolveImportTargets(
     repoRoot,
     [paths.routerPath, paths.configPath, paths.vocabularyPath],
-    optionalFlag(flags, 'agents-file'),
+    inputs.agentsFile,
     initSafePathErrors,
   );
-  const report = await runInit({
-    repoRoot,
-    paths,
-    targets,
-    flags,
-    context: effectiveContext,
-  });
+  const report = await runInit({ repoRoot, paths, targets, inputs, context });
 
   return renderReport(context.json, report);
 };
 
-const initCommand: CommandHandler = async ({ args, context }) => {
-  try {
-    return { stdout: await executeInit(args, context) };
-  } catch (error) {
-    return failure(error);
-  }
-};
-
-export { initCommand };
+export { executeInit };
+export type { InitInputs };
