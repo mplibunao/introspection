@@ -1,13 +1,14 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { assert, describe, it } from '@effect/vitest';
 
 import { createDeterministicRetrievalProvider } from '../../src/retrieval/deterministic-provider.js';
 import { createGnoRetrievalAdapter } from '../../src/retrieval/gno-adapter.js';
-import type { GnoSearchClient, GnoSearchHit } from '../../src/retrieval/gno-adapter.js';
 import type {
   RetrievalDocument,
   RetrievalProvider,
 } from '../../src/retrieval/retrieval-provider.js';
+
+type GnoSearchClient = Parameters<typeof createGnoRetrievalAdapter>[0];
+type GnoSearchHit = Awaited<ReturnType<GnoSearchClient['search']>>[number];
 
 const documents: ReadonlyArray<RetrievalDocument> = [
   {

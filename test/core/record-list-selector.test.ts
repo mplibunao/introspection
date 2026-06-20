@@ -1,9 +1,7 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { assert, describe, it } from '@effect/vitest';
 
 import { IntrospectionError } from '../../src/core/errors.js';
 import { selectRecordList } from '../../src/core/record-list-selector.js';
-import type { RecordListCandidate } from '../../src/core/record-list-selector.js';
 import type {
   BaseRecordFrontmatter,
   ParsedRecord,
@@ -78,6 +76,8 @@ const record = (
     ].join('\n\n'),
   };
 };
+
+type RecordListCandidate = Parameters<typeof selectRecordList>[0]['records'][number];
 
 const candidate = (
   parsedRecord: ParsedRecord,
