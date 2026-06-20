@@ -6,6 +6,8 @@ allowBuilds:
 blockExoticSubdeps: true
 catalog:
   '@changesets/cli': 2.31.0
+  '@effect/platform-bun': 4.0.0-beta.73
+  '@effect/platform-node': 4.0.0-beta.73
   '@effect/vitest': 4.0.0-beta.73
   '@mplibunao/oxlint-standards': 0.1.0
   '@mplibunao/tsconfig': 0.1.0
@@ -39,6 +41,10 @@ onlyBuiltDependencies:
 overrides:
   oxlint-tsgolint: 0.18.1
   semver: '>=7.7.2'
+  # Pin the Effect platform line to the same beta as effect; platform-bun floats
+  # @effect/platform-node-shared via ^4.0.0-beta.73, which otherwise drifts to a
+  # newer beta and skews the ecosystem against the pinned effect core.
+  '@effect/platform-node-shared': 4.0.0-beta.73
 packageManagerStrictVersion: true
 strictDepBuilds: true
 trustPolicy: no-downgrade
@@ -48,4 +54,7 @@ trustPolicy: no-downgrade
 trustPolicyExclude:
   - effect@4.0.0-beta.73
   - '@effect/vitest@4.0.0-beta.73'
+  - '@effect/platform-bun@4.0.0-beta.73'
+  - '@effect/platform-node@4.0.0-beta.73'
+  - '@effect/platform-node-shared@4.0.0-beta.73'
 verifyDepsBeforeRun: warn

@@ -48,6 +48,31 @@ export default defineConfig({
     plugins: ['typescript', 'import', 'vitest'],
     overrides: [
       {
+        /*
+         * Effect's canonical module style is namespace imports
+         * (`import * as Effect from "effect/Effect"`); the whole CLI shell is
+         * written in that idiom. This is the single rule that is genuinely
+         * incompatible with idiomatic Effect, not an avoidable style choice.
+         * Every other preset ceiling (complexity, dependency count, ternaries,
+         * explicit undefined) is satisfied by decomposition, not suppression.
+         */
+        files: ['src/cli/**/*.ts', 'src/bin.ts'],
+        rules: {
+          'import/no-namespace': 'off',
+        },
+      },
+      {
+        /*
+         * Effect service tags are defined with the uppercase `Context.Service`
+         * factory called as a function (not a constructor), which new-cap flags.
+         * Scoped to the one file that declares the CLI service tag.
+         */
+        files: ['src/cli/env.ts'],
+        rules: {
+          'new-cap': 'off',
+        },
+      },
+      {
         // Structural size/complexity ceilings are meaningless for test files.
         // Tests are intentionally large and fixture-heavy to keep assertions co-located.
         // Exception: `max-depth` and `max-params` stay strict — they flag real structural problems in tests too.
