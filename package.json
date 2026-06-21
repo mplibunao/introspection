@@ -1,6 +1,6 @@
 {
   "name": "@mplibunao/introspection",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Governed markdown record substrate and CLI for agent-maintained repositories.",
   "license": "MIT",
   "bin": {

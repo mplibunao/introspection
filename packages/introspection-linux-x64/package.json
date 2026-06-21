@@ -1,6 +1,6 @@
 {
   "name": "@mplibunao/introspection-linux-x64",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "linux-x64 compiled binary for the introspection CLI.",
   "license": "MIT",
   "files": [
