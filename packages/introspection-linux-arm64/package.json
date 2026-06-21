@@ -1,6 +1,6 @@
 {
   "name": "@mplibunao/introspection-linux-arm64",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "linux-arm64 compiled binary for the introspection CLI.",
   "license": "MIT",
   "files": [
