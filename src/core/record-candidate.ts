@@ -1,6 +1,4 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
-import { createRecordIdentity } from './id.js';
-import type { RecordIdentity } from './id.js';
+import { createRecordIdentity, type RecordIdentity } from './id.js';
 import type {
   BaseRecordFrontmatter,
   ParsedRecord,
@@ -11,6 +9,7 @@ import type {
   Visibility,
 } from './record-type-types.js';
 import { expectedMachineTags } from './validation.js';
+
 
 /*
  * The builder may assemble a ParsedRecord from already-decided inputs only.
