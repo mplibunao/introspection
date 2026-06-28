@@ -1,4 +1,3 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -8,7 +7,10 @@ import {
   isMissingPathError,
   resolveSafeRepoPath,
 } from './repo-path-safety.js';
-import type { SafePathErrors } from './repo-path-safety.js';
+
+const resolveSafeRepoPathErrorsIndex = 3;
+
+type SafePathErrors = Parameters<typeof resolveSafeRepoPath>[typeof resolveSafeRepoPathErrorsIndex];
 
 const claudeFileName = 'CLAUDE.md';
 const agentsFileName = 'AGENTS.md';

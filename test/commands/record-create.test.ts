@@ -10,7 +10,8 @@ import { parseMarkdownRecord } from '../../src/store/frontmatter.js';
 import { now, parseJsonStdout, run, term, withTempRepo } from '../fixtures/cli-repo-fixture.js';
 
 // Resolved at import time so the guard test does not need async file I/O.
-const recordCommandSourcePath = new URL('../../src/commands/record.ts', import.meta.url).pathname;
+const recordCommandSourcePath = new URL('../../src/cli/commands/record/create.ts', import.meta.url)
+  .pathname;
 
 const recordCreateRepoOptions = {
   tmpDirPrefix: 'introspection-record-create-',
