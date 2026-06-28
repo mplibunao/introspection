@@ -1,4 +1,3 @@
-/* eslint-disable no-duplicate-imports -- Import-style rules require separate top-level type imports. */
 import { access, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -9,13 +8,12 @@ import type { MarkdownRecordStore } from '../store/markdown-record-store.js';
 import { packageVersion } from '../version.js';
 
 import { buildExportDocuments, buildExportManifest } from './export-document.js';
-import type {
-  ExportManifest,
-  ExportManifestEntry,
-  ExportRecordDocument,
-} from './export-document.js';
 import { writeGnoProjection } from './gno-exporter.js';
 import { stableJson, writeJsonExport } from './json-exporter.js';
+
+type ExportManifest = ReturnType<typeof buildExportManifest>;
+type ExportManifestEntry = ExportManifest['exports'][number];
+type ExportRecordDocument = ReturnType<typeof buildExportDocuments>[number];
 
 interface ExportServiceOptions {
   readonly destinationDirectory?: string;
@@ -91,7 +89,12 @@ const defaultDestinationEscapesRepoError = (
   new IntrospectionError(
     'export.default_destination.path_outside_repo_root',
     'Default export destination must resolve inside the repo root.',
-    { destinationDirectory, existingAncestor, existingAncestorRealPath, repoRoot },
+    {
+      destinationDirectory,
+      existingAncestor,
+      existingAncestorRealPath,
+      repoRoot,
+    },
   );
 
 const recordsRootInsideDefaultDestinationError = (
@@ -286,7 +289,12 @@ const writeResult = async (
     await writeJsonBundle(destinationDirectory, manifest, records);
   }
 
-  return { destinationDirectory, manifest, manifestPath, recordsExported: records.length };
+  return {
+    destinationDirectory,
+    manifest,
+    manifestPath,
+    recordsExported: records.length,
+  };
 };
 
 const writeExports = async (
